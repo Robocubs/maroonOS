@@ -3,3 +3,4 @@
 .env.3
 .DS_Store
 CLAUDE.md
+server/venv/
