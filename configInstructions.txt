@@ -1,15 +1,31 @@
 OS Install
     Use the Raspberry Pi Imager to install Raspberry Pi OS Bookworm (64 bit) with a Desktop environment onto a microSD card
+        NOTE: Use the full Desktop image (not Lite) — the desktop drivers improve hardware acceleration even though Sway replaces LXDE as the session
         Use CMD + Shift + X to open the Imager settings (CTRL + Shift + X on Windows)
         Set hostname to 3da or 3db respectively
+        Enable SSH in the Imager settings and set a username/password
 
         Once the install is complete, insert the microSD card into the Raspberry Pi and power it on.
-        Follow any on screen prompts to complete setup. You should be on the desktop environment before continuing onto the next step.
+        Follow any on screen prompts to complete setup, then connect via SSH to continue.
 
-Screen Configuration
-    Click the Raspberry Pi icon in the top left corner of the screen
-    Go to Preferences > Screen Configuration > [Select Current Screen] > Configure > Orientation > [Select Correct Orientation to Make the Desktop Portrait]
-    Click Apply, Ok, and then Close
+Install Dependencies
+    SSH into the Pi and run the following:
+
+        sudo apt update && sudo apt upgrade -y
+
+        # Sway (Wayland compositor) and supporting tools
+        sudo apt install -y sway swayidle
+
+        # Docker
+        sudo apt install -y docker.io docker-compose-plugin
+
+        # Add your user to the docker group (no sudo needed for docker commands)
+        sudo usermod -aG docker robocubs
+
+        # Git
+        sudo apt install -y git
+
+    Log out and back in for the docker group change to take effect.
 
 Install Remote.it Client
     Follow this guide to install: https://docs.remote.it/software/device-package/installation
@@ -17,86 +33,104 @@ Install Remote.it Client
     At the time of writing, the quick install guide isn't working so we utilized the manual method.
 
     Finish setting up the remote.it client on the web dashboard
-        Make sure to include the addition of the SSH and VNC service
+        Make sure to include the addition of the SSH service
         [Click on the plus sign next to the "Service" tag when the device is selected to add each service]
+        NOTE: VNC is not available on Wayland. Use SSH for remote access.
 
     Make sure to remove the installer file from the Raspberry Pi. It is no longer needed.
 
-    Reboot the Raspberry Pi
-
-Configure Device Settings
-    Enable SSH
-        Click the Raspberry Pi icon in the top left corner of the screen
-        Go to Preferences > Raspberry Pi Configuration > Interfaces
-        Toggle SSH to "Enabled"
-        Click OK
-
-    Enable VNC
-        Click the Raspberry Pi icon in the top left corner of the screen
-        Go to Preferences > Raspberry Pi Configuration > Interfaces
-        Toggle VNC to "Enabled"
-        Click OK
-
-    Enable Auto Login
-        Click the Raspberry Pi icon in the top left corner of the screen
-        Go to Preferences > Raspberry Pi Configuration > System
-        Make sure the boot option is set to "To Desktop" and that "Auto Login" is toggled as "Enabled"
-        Click OK
-
 Get Dashboard Files
-    Connect to the Raspberry Pi via SSH
+    Make sure you are in the home directory:
+        cd ~
 
-    Make sure you are in the home directory (use the command "cd /home/pi" to navigate to the home directory if not already indicated by "~")
-
-    Working in the terminal, follow the steps below to get the files from GitHub:
+    Clone the repo:
         git clone https://github.com/Qddog23/maroonOS.git
 
 Setup Dashboard
-    Continuing in SSH, navigate to the maroonOS directory with the following command (assuming you are in the home directory):
-        cd maroonOS
+    Navigate to the maroonOS directory:
+        cd ~/maroonOS
 
-    Use the following steps to create the .env file:
+    Create the .env file(s):
         For Single Printer:
-            touch .env.2
+            cp envTemplate.txt .env.2
             nano .env.2
 
         For Three Printers:
-            touch .env.1
-            nano .env.1
-            [repeat for .env.2 and .env.3]
+            cp envTemplate.txt .env.1 && nano .env.1
+            cp envTemplate.txt .env.2 && nano .env.2
+            cp envTemplate.txt .env.3 && nano .env.3
 
-        Copy the contents of the envTemplate.txt file into the .env file
-        Fill in the necessary information (lots of which can be found on Connect - make sure you use the Prusa Link API key)
-        Save and exit the file (CTRL + X, Y, Enter)
+        Fill in IP, API_KEY, PRINTER_NAME, and FIRMWARE for each printer.
+        Save and exit (CTRL + X, Y, Enter).
 
-    Use the following steps to configure the server start:
-        crontab -e
-        (If prompted to select an editor, choose nano)
+Configure Server Startup (Docker via systemd)
+    Copy the systemd service file:
+        sudo cp ~/maroonOS/deploy/maroonOS-server.service /etc/systemd/system/
 
-        For a Single Printer Setup, go to a free line and type the following:
-            # Python Server Start
-            @reboot /home/robocubs/maroonOS/server/serverStart.sh > /home/robocubs/maroonOS/server/startupErrorLogs/startup.log 2>&1
-        
-        For a Three Printer Setup, go to a free line and type the following:
-            # Python Server Start
-            @reboot /home/robocubs/maroonOS/server/maxServerStart.sh > /home/robocubs/maroonOS/server/startupErrorLogs/startup.log 2>&1
+    For a Three Printer (max) setup, edit the service file to use the max profile:
+        sudo nano /etc/systemd/system/maroonOS-server.service
+        Change both occurrences of '--profile reg' to '--profile max'
+        Save and exit (CTRL + X, Y, Enter)
 
-        Exit (CTRL + X) and save (Y)
+    Enable and start the service:
+        sudo systemctl daemon-reload
+        sudo systemctl enable maroonOS-server
+        sudo systemctl start maroonOS-server
 
-    Use the following steps to configure the dashboard start:
-        cd .config
-        (assuming you are in the home directory - if it doesn't work try "cd ~/.config")
+    Verify it started correctly:
+        sudo systemctl status maroonOS-server
 
-        mkdir autostart
-        cd autostart
-        touch maroonOS.desktop
-        nano maroonOS.desktop
+Configure Display (Sway)
+    Find your display output name:
+        swaymsg -t get_outputs
+        Note the Name field (e.g. HDMI-A-1)
 
-        For a Single Printer Setup, copy the contents of the dotDesktopTemplateSingle.txt file into the maroonOS.desktop file
-        For a Three Printer Setup, copy the contents of the dotDesktopTemplateMax.txt file into the maroonOS.desktop file
+    Copy the appropriate Sway config:
+        mkdir -p ~/.config/sway
 
-        Save and exit the file (CTRL + X, Y, Enter)
+        For Single Printer:
+            cp ~/maroonOS/deploy/reg/sway-config ~/.config/sway/config
 
-Run Update Script (Necessary):
-    cd ~/maroonOS/server
-    sh pullUpdates.sh  
+        For Three Printers:
+            cp ~/maroonOS/deploy/max/sway-config ~/.config/sway/config
+
+    Edit the config if your output name or rotation differs:
+        nano ~/.config/sway/config
+        Update the output line to match your display name/rotation
+        Save and exit (CTRL + X, Y, Enter)
+
+    To check portrait rotation direction, temporarily run:
+        sway
+        Then run: swaymsg output HDMI-A-1 transform 90
+        If the display is upside-down, use 270 instead. Update the config accordingly.
+
+Configure Auto Login to Sway
+    Edit the getty service to auto-login:
+        sudo systemctl edit getty@tty1
+
+    Add the following (replace robocubs with your username if different):
+        [Service]
+        ExecStart=
+        ExecStart=-/sbin/agetty --autologin robocubs --noclear %I $TERM
+
+    Save and exit.
+
+    Add Sway to the shell profile so it launches on login:
+        nano ~/.bash_profile
+
+    Add these lines at the end:
+        if [ -z "$WAYLAND_DISPLAY" ] && [ "$XDG_VTNR" = "1" ]; then
+            exec sway
+        fi
+
+    Save and exit (CTRL + X, Y, Enter).
+
+    Reboot to verify everything starts automatically:
+        sudo reboot
+
+Checking Logs
+    Server logs:
+        sudo journalctl -u maroonOS-server -f
+
+    Sway logs (if Sway fails to start):
+        journalctl --user -f

@@ -1,0 +1,33 @@
+# maroonOS — Three Printer Max (Landscape)
+# Copy to ~/.config/sway/config on the Pi
+
+# --- Display ---
+# Run `swaymsg -t get_outputs` to find your output name
+# No transform needed — max layout is landscape
+output HDMI-A-1 transform 0
+
+# --- Appearance ---
+default_border none
+default_floating_border none
+gaps inner 0
+gaps outer 0
+
+# Hide status bar
+bar {
+    mode invisible
+}
+
+# Hide cursor after 1 second of inactivity
+seat * hide_cursor 1000
+
+# --- Startup ---
+# Server is managed by the maroonOS-server systemd service.
+# Chromium launches after a brief delay to ensure the server is ready.
+exec sleep 3 && chromium-browser \
+    --kiosk \
+    --ozone-platform=wayland \
+    --enable-features=UseOzonePlatform \
+    --noerrdialogs \
+    --disable-infobars \
+    --no-first-run \
+    'file:///home/robocubs/maroonOS/frontends/max/dashboardMax.html'

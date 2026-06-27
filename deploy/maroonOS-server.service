@@ -1,0 +1,17 @@
+[Unit]
+Description=maroonOS Printer Server
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=robocubs
+WorkingDirectory=/home/robocubs/maroonOS
+# Replace 'reg' with 'max' for the three-printer setup
+ExecStart=docker compose --profile reg up
+ExecStop=docker compose --profile reg down
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

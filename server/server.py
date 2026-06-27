@@ -24,7 +24,7 @@ def loadEnv(path):
 
 count = 0       # Used in dev mode to cycle through different states
 
-devMode = False  # Set to True to run in development mode (works offline or when pi/printer isn't available)
+devMode = os.getenv('DEV_MODE', 'false').lower() == 'true'
 cycleStates = False  # Set to True to cycle through different printer states when dev mode is True
 
 status = {
@@ -195,4 +195,4 @@ if __name__ == '__main__':
 
     loadEnv(str(port)[-1])
 
-    serve(app, host="127.0.0.1", port=port)
+    serve(app, host="0.0.0.0", port=port)

@@ -1,0 +1,56 @@
+services:
+
+  # Single-printer setup: docker compose --profile reg up
+  # Local dev:           docker compose --profile reg up -e DEV_MODE=true
+  server-reg:
+    build:
+      context: ./server
+    ports:
+      - "8002:8002"
+    command: ["python", "server.py", "8002"]
+    environment:
+      - DEV_MODE=${DEV_MODE:-false}
+    volumes:
+      - ./.env.2:/app/.env.2:ro
+    restart: unless-stopped
+    profiles: ["reg"]
+
+  # Three-printer setup: docker compose --profile max up
+  server-1:
+    build:
+      context: ./server
+    ports:
+      - "8001:8001"
+    command: ["python", "server.py", "8001"]
+    environment:
+      - DEV_MODE=${DEV_MODE:-false}
+    volumes:
+      - ./.env.1:/app/.env.1:ro
+    restart: unless-stopped
+    profiles: ["max"]
+
+  server-2:
+    build:
+      context: ./server
+    ports:
+      - "8002:8002"
+    command: ["python", "server.py", "8002"]
+    environment:
+      - DEV_MODE=${DEV_MODE:-false}
+    volumes:
+      - ./.env.2:/app/.env.2:ro
+    restart: unless-stopped
+    profiles: ["max"]
+
+  server-3:
+    build:
+      context: ./server
+    ports:
+      - "8003:8003"
+    command: ["python", "server.py", "8003"]
+    environment:
+      - DEV_MODE=${DEV_MODE:-false}
+    volumes:
+      - ./.env.3:/app/.env.3:ro
+    restart: unless-stopped
+    profiles: ["max"]
