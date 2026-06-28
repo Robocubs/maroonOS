@@ -1,0 +1,144 @@
+OS Install
+    Use the Raspberry Pi Imager to install Raspberry Pi OS Bookworm (64 bit) with a Desktop environment onto a microSD card
+        NOTE: Use the full Desktop image (not Lite) — the desktop drivers improve hardware acceleration even though Sway replaces LXDE as the session
+        Use CMD + Shift + X to open the Imager settings (CTRL + Shift + X on Windows)
+        Set hostname to 3da or 3db respectively
+        Enable SSH in the Imager settings and set a username/password
+
+        Once the install is complete, insert the microSD card into the Raspberry Pi and power it on.
+        Follow any on screen prompts to complete setup, then connect via SSH to continue.
+
+Install Dependencies
+    SSH into the Pi and run the following:
+
+        sudo apt update && sudo apt upgrade -y
+
+        # Sway (Wayland compositor) and supporting tools
+        sudo apt install -y sway swayidle
+
+        # Docker
+        sudo apt install -y docker.io docker-compose-plugin
+
+        # Add your user to the docker group (no sudo needed for docker commands)
+        sudo usermod -aG docker robocubs
+
+        # Git
+        sudo apt install -y git
+
+        # Chromium (kiosk browser) and curl (used by sway-config to wait for server)
+        sudo apt install -y chromium-browser curl
+
+    Log out and back in for the docker group change to take effect.
+
+Install Remote.it Client
+    Follow this guide to install: https://docs.remote.it/software/device-package/installation
+
+    At the time of writing, the quick install guide isn't working so we utilized the manual method.
+
+    Finish setting up the remote.it client on the web dashboard
+        Make sure to include the addition of the SSH service
+        [Click on the plus sign next to the "Service" tag when the device is selected to add each service]
+        NOTE: VNC is not available on Wayland. Use SSH for remote access.
+
+    Make sure to remove the installer file from the Raspberry Pi. It is no longer needed.
+
+Get Dashboard Files
+    Make sure you are in the home directory:
+        cd ~
+
+    Clone the repo:
+        git clone https://github.com/Qddog23/maroonOS.git
+
+Setup Dashboard
+    Navigate to the maroonOS directory:
+        cd ~/maroonOS
+
+    Create the .env file(s) inside the app/ directory:
+        For Single Printer:
+            cp docs/envTemplate.txt app/.env.1
+            nano app/.env.1
+
+        For Three Printers:
+            cp docs/envTemplate.txt app/.env.1 && nano app/.env.1
+            cp docs/envTemplate.txt app/.env.2 && nano app/.env.2
+            cp docs/envTemplate.txt app/.env.3 && nano app/.env.3
+
+        Fill in IP, API_KEY, PRINTER_NAME, and FIRMWARE for each printer.
+        Save and exit (CTRL + X, Y, Enter).
+
+        NOTE: Printer IDs correspond to .env file numbers (.env.1 = printer 1, etc.).
+        For a single printer setup, always use .env.1.
+
+Configure Server Startup (Docker via systemd)
+    Copy the systemd service file:
+        sudo cp ~/maroonOS/pi/maroonOS-server.service /etc/systemd/system/
+
+    For a Three Printer (max) setup, edit the service file to set MODE=max:
+        sudo nano /etc/systemd/system/maroonOS-server.service
+        Add 'Environment=MODE=max' under the [Service] section
+        Save and exit (CTRL + X, Y, Enter)
+
+    Enable and start the service:
+        sudo systemctl daemon-reload
+        sudo systemctl enable maroonOS-server
+        sudo systemctl start maroonOS-server
+
+    Verify it started correctly:
+        sudo systemctl status maroonOS-server
+
+Configure Display (Sway)
+    Find your display output name:
+        swaymsg -t get_outputs
+        Note the Name field (e.g. HDMI-A-1)
+
+    Copy the appropriate Sway config:
+        mkdir -p ~/.config/sway
+
+        For Single Printer:
+            cp ~/maroonOS/pi/reg/sway-config ~/.config/sway/config
+
+        For Three Printers:
+            cp ~/maroonOS/pi/max/sway-config ~/.config/sway/config
+
+    Edit the config if your output name or rotation differs:
+        nano ~/.config/sway/config
+        Update the output line to match your display name/rotation
+        Save and exit (CTRL + X, Y, Enter)
+
+    To check portrait rotation direction, temporarily run:
+        sway
+        Then run: swaymsg output HDMI-A-1 transform 90
+        If the display is upside-down, use 270 instead. Update the config accordingly.
+
+    Chromium will open http://localhost:8080 automatically — no file paths needed.
+
+Configure Auto Login to Sway
+    Edit the getty service to auto-login:
+        sudo systemctl edit getty@tty1
+
+    Add the following (replace robocubs with your username if different):
+        [Service]
+        ExecStart=
+        ExecStart=-/sbin/agetty --autologin robocubs --noclear %I $TERM
+
+    Save and exit.
+
+    Add Sway to the shell profile so it launches on login:
+        nano ~/.bash_profile
+
+    Add these lines at the end:
+        if [ -z "$WAYLAND_DISPLAY" ] && [ "$XDG_VTNR" = "1" ]; then
+            exec sway
+        fi
+
+    Save and exit (CTRL + X, Y, Enter).
+
+    Reboot to verify everything starts automatically:
+        sudo reboot
+
+Checking Logs
+    Server logs:
+        sudo journalctl -u maroonOS-server -f
+
+    Sway logs (if Sway fails to start):
+        journalctl --user -f

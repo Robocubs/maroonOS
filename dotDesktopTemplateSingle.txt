@@ -1,4 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=maroonOS
-Exec=/home/robocubs/maroonOS/frontends/reg/chromiumStart.sh

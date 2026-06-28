@@ -1,7 +1,9 @@
-.env.1
-.env.2
-.env.3
+app/.env.1
+app/.env.2
+app/.env.3
 .DS_Store
 CLAUDE.md
-server/venv/
+app/venv/
 .claude/
+__pycache__/
+*.pyc
