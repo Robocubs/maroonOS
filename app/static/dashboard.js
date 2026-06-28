@@ -104,23 +104,21 @@ class Dashboard {
             .then(r => r.json())
             .then(data => {
                 const fileName = data.file.display_name.split('_');
-                if (this.printerType === 'connect.prusa3d.com') {
-                    this._checkLength(this._checkIS(fileName)[0]);
-                    this.$('#filamentType').textContent = fileName[2];
-                    this.$('#layerHeight').textContent = fileName[1].replace('mm', '');
-                    this.$('#layerUnit').textContent = 'mm';
-                    this.$('#nozzleDiameter').textContent = this.nozzleSize;
-                    this.$('#nozzleUnit').textContent = 'mm';
-                    this.$('#timeString').innerHTML = this._calcTime(fileName[4].split('.')[0]);
-                } else {
-                    this._checkLength(this._checkIS(fileName)[0]);
-                    this.$('#filamentType').textContent = fileName[3];
-                    this.$('#layerHeight').textContent = fileName[2].replace('mm', '');
-                    this.$('#layerUnit').textContent = 'mm';
+                const hasNozzle = fileName[1].endsWith('n');
+                this._checkLength(this._checkIS(fileName)[0]);
+                if (hasNozzle) {
                     this.$('#nozzleDiameter').textContent = fileName[1].replace('n', '');
-                    this.$('#nozzleUnit').textContent = 'mm';
+                    this.$('#layerHeight').textContent = fileName[2].replace('mm', '');
+                    this.$('#filamentType').textContent = fileName[3];
                     this.$('#timeString').innerHTML = this._calcTime(fileName[5].split('.')[0]);
+                } else {
+                    this.$('#nozzleDiameter').textContent = this.nozzleSize;
+                    this.$('#layerHeight').textContent = fileName[1].replace('mm', '');
+                    this.$('#filamentType').textContent = fileName[2];
+                    this.$('#timeString').innerHTML = this._calcTime(fileName[4].split('.')[0]);
                 }
+                this.$('#layerUnit').textContent = 'mm';
+                this.$('#nozzleUnit').textContent = 'mm';
             })
             .catch(() => {});
     }
@@ -152,9 +150,7 @@ class Dashboard {
             .then(r => r.json())
             .then(data => {
                 this.printerType = data.hostname;
-                if (this.printerType === 'connect.prusa3d.com') {
-                    this.nozzleSize = data.nozzle_diameter;
-                }
+                this.nozzleSize = data.nozzle_diameter;
             })
             .catch(() => {});
     }
@@ -250,15 +246,11 @@ class Dashboard {
         }
     }
 
-    _checkIS(title) {
-        if (title[4] === 'MK4IS' || title[4] === 'XLIS') {
-            this.$('#ISLabel').textContent = 'On';
-        } else if (title[3] === 'MK3S') {
-            this.$('#ISLabel').textContent = '---';
-        } else {
-            this.$('#ISLabel').textContent = 'Off';
-        }
-        return title;
+    _checkIS(fileName) {
+        const hasNozzle = fileName[1].endsWith('n');
+        const printer = hasNozzle ? fileName[4] : fileName[3];
+        this.$('#ISLabel').textContent = printer === 'MK3S' ? '---' : 'On';
+        return fileName;
     }
 
     _calcTime(time) {
