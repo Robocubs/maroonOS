@@ -164,12 +164,12 @@ class Dashboard {
                 const size = new Image();
                 size.src = image;
                 size.onload = () => {
-                    if (size.width !== 999 || size.height !== 999) {
+                    if (size.width > 999 || size.height > 999) {
+                        view.src = image;
+                    } else {
                         view.style.width = '90%';
                         view.style.height = '90%';
                         view.src = '/static/images/RobocubsLogo.png';
-                    } else {
-                        view.src = image;
                     }
                 };
             })
@@ -259,13 +259,12 @@ class Dashboard {
         const hasHours = time.includes('h');
         const hasMins = time.includes('m');
         const parts = time.replace(/[dhm]/g, '_').split('_');
-        const fmt = (n, s, p) => n == 1 ? `${n} ${s}` : `${n} ${p}`;
         const segments = [];
         let i = 0;
-        if (hasDays) segments.push(fmt(parts[i++], 'day', 'days'));
-        if (hasHours) segments.push(fmt(parts[i++], 'hr', 'hrs'));
-        if (hasMins) segments.push(fmt(parts[i++], 'min', 'mins'));
-        return segments.join('<br>');
+        if (hasDays) segments.push(`${parts[i++]}d`);
+        if (hasHours) segments.push(`${parts[i++]}h`);
+        if (hasMins) segments.push(`${parts[i++]}m`);
+        return segments.join(' ');
     }
 
     _updateProgressBar(progress) {
