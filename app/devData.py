@@ -6,8 +6,8 @@ def fake_status() -> dict:
         "job": {
             "id": 43,
             "progress": 28.00,
-            "time_remaining": 7560,
-            "time_printing": 3302,
+            "time_remaining": random.randint(600, 14400),
+            "time_printing": random.randint(60, 7200),
         },
         "storage": {
             "path": "/usb/",
@@ -34,8 +34,8 @@ def fake_job() -> dict:
         "id": 43,
         "state": "PRINTING",
         "progress": round(random.uniform(0, 100), 2),
-        "time_remaining": 12,
-        "time_printing": 123,
+        "time_remaining": random.randint(600, 14400),
+        "time_printing": random.randint(60, 7200),
         "file": {
             "refs": {
                 "icon": "/thumb/s/usb/AMPSTA~1.BGC",
