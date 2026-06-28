@@ -1,5 +1,5 @@
-@import url(../colors.css);
-@import url(../fonts.css);
+@import url(/static/colors.css);
+@import url(/static/fonts.css);
 
 * {
     box-sizing: border-box;
@@ -43,7 +43,7 @@ html, body {
     height: 100%;
     display: grid;
     grid-template-columns: auto repeat(2, 1fr);
-    grid-template-rows: auto repeat(6, 1fr);
+    grid-template-rows: 150px 504px 505px 308px 329px 504px 78px;
     column-gap: 19px;
     row-gap: 19px;
     padding: 34px;
@@ -112,7 +112,7 @@ html, body {
 .machineInfoBox {
     grid-column: 1/4;
     background-color: black;
-    height: 4vh;
+    height: 78px;
 }
 
 #jobTitle, #jobTitle1, #jobTitle2 {
@@ -195,7 +195,7 @@ html, body {
 }
 
 .info-icon {
-    width: 5vh;
+    width: 128px;
     padding-right: 10px;
 }
 

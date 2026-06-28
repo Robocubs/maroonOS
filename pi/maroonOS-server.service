@@ -7,9 +7,9 @@ Requires=docker.service
 Type=simple
 User=robocubs
 WorkingDirectory=/home/robocubs/maroonOS
-# Replace 'reg' with 'max' for the three-printer setup
-ExecStart=docker compose --profile reg up
-ExecStop=docker compose --profile reg down
+# Set MODE=max for the three-printer setup
+ExecStart=docker compose up
+ExecStop=docker compose down
 Restart=on-failure
 RestartSec=5
 

@@ -25,6 +25,9 @@ Install Dependencies
         # Git
         sudo apt install -y git
 
+        # Chromium (kiosk browser) and curl (used by sway-config to wait for server)
+        sudo apt install -y chromium-browser curl
+
     Log out and back in for the docker group change to take effect.
 
 Install Remote.it Client
@@ -50,26 +53,29 @@ Setup Dashboard
     Navigate to the maroonOS directory:
         cd ~/maroonOS
 
-    Create the .env file(s):
+    Create the .env file(s) inside the app/ directory:
         For Single Printer:
-            cp envTemplate.txt .env.2
-            nano .env.2
+            cp docs/envTemplate.txt app/.env.1
+            nano app/.env.1
 
         For Three Printers:
-            cp envTemplate.txt .env.1 && nano .env.1
-            cp envTemplate.txt .env.2 && nano .env.2
-            cp envTemplate.txt .env.3 && nano .env.3
+            cp docs/envTemplate.txt app/.env.1 && nano app/.env.1
+            cp docs/envTemplate.txt app/.env.2 && nano app/.env.2
+            cp docs/envTemplate.txt app/.env.3 && nano app/.env.3
 
         Fill in IP, API_KEY, PRINTER_NAME, and FIRMWARE for each printer.
         Save and exit (CTRL + X, Y, Enter).
 
+        NOTE: Printer IDs correspond to .env file numbers (.env.1 = printer 1, etc.).
+        For a single printer setup, always use .env.1.
+
 Configure Server Startup (Docker via systemd)
     Copy the systemd service file:
-        sudo cp ~/maroonOS/deploy/maroonOS-server.service /etc/systemd/system/
+        sudo cp ~/maroonOS/pi/maroonOS-server.service /etc/systemd/system/
 
-    For a Three Printer (max) setup, edit the service file to use the max profile:
+    For a Three Printer (max) setup, edit the service file to set MODE=max:
         sudo nano /etc/systemd/system/maroonOS-server.service
-        Change both occurrences of '--profile reg' to '--profile max'
+        Add 'Environment=MODE=max' under the [Service] section
         Save and exit (CTRL + X, Y, Enter)
 
     Enable and start the service:
@@ -89,10 +95,10 @@ Configure Display (Sway)
         mkdir -p ~/.config/sway
 
         For Single Printer:
-            cp ~/maroonOS/deploy/reg/sway-config ~/.config/sway/config
+            cp ~/maroonOS/pi/reg/sway-config ~/.config/sway/config
 
         For Three Printers:
-            cp ~/maroonOS/deploy/max/sway-config ~/.config/sway/config
+            cp ~/maroonOS/pi/max/sway-config ~/.config/sway/config
 
     Edit the config if your output name or rotation differs:
         nano ~/.config/sway/config
@@ -103,6 +109,8 @@ Configure Display (Sway)
         sway
         Then run: swaymsg output HDMI-A-1 transform 90
         If the display is upside-down, use 270 instead. Update the config accordingly.
+
+    Chromium will open http://localhost:8080 automatically — no file paths needed.
 
 Configure Auto Login to Sway
     Edit the getty service to auto-login:

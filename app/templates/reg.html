@@ -3,24 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="dashboardStyles.css">
+    <link rel="stylesheet" href="/static/dashboardStyles.css">
     <title>maroonOS - Dashboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
 </head>
 <body>
     <div id="sleep" class="full">
-        <!-- <img src="../assets/SleepImage.png" alt="Sleep Image" class="image"></img> -->
-        <!-- TODO: Add pause to video when not displaying -->
         <video autoplay muted loop>
-            <source src="../assets/PortraitAnniversary.webm" type="video/webm">
+            <source src="/static/videos/PortraitAnniversary.webm" type="video/webm">
         </video>
-    </div>
-
-    <div id="sleepAlt" class="full">
-        <img src="../assets/RobocubsLogo.png" alt="Sleep Image" class="image" style="width: 80%;"></img>
-        <!-- <video autoplay muted loop>
-            <source src="../assets/PortraitAnniversary1080p.webm" type="video/webm">
-        </video> -->
     </div>
 
     <div id="live" class="full">
@@ -40,33 +31,33 @@
             <div class="widget infoBox">
                 <div class="info-container">
                     <div class="info-item">
-                        <img src="../assets/icons/Nozzle.svg" alt="Nozzle" class="info-icon">
+                        <img src="/static/icons/Nozzle.svg" alt="Nozzle" class="info-icon">
                         <div class="info-label">
                             <h2 id="nozzleDiameter" class="info-value">---</h2>
                             <h2 id="nozzleUnit" class="info-unit"></h2>
                         </div>
                     </div>
                     <div class="info-item">
-                        <img src="../assets/icons/FilamentSpool.svg" alt="Filament Spool" class="info-icon">
+                        <img src="/static/icons/FilamentSpool.svg" alt="Filament Spool" class="info-icon">
                         <div class="info-label">
                             <h2 id="filamentType" class="info-value">---</h2>
                         </div>
                     </div>
                     <div class="info-item">
-                        <img src="../assets/icons/LayerHeight.svg" alt="Layer Height" class="info-icon">
+                        <img src="/static/icons/LayerHeight.svg" alt="Layer Height" class="info-icon">
                         <div class="info-label">
                             <h2 id="layerHeight" class="info-value">---</h2>
                             <h2 id="layerUnit" class="info-unit"></h2>
                         </div>
                     </div>
                     <div class="info-item">
-                        <img src="../assets/icons/Time.svg" alt="Time" class="info-icon">
+                        <img src="/static/icons/Time.svg" alt="Time" class="info-icon">
                         <div class="info-label">
                             <h2 id="timeString" class="info-value">---</h2>
                         </div>
                     </div>
                     <div class="info-item">
-                        <img src="../assets/icons/InputShaping.svg" alt="Input Shaping" class="info-icon">
+                        <img src="/static/icons/InputShaping.svg" alt="Input Shaping" class="info-icon">
                         <div class="info-label">
                             <h2 id="ISLabel" class="info-value">---</h2>
                         </div>
@@ -198,6 +189,7 @@
             </div>
         </div>
     </div>
-    <script src="dashboardLoop.js"></script>
+    <script src="/static/dashboard.js"></script>
+    <script>new Dashboard({{ printer_id }}, document.body);</script>
 </body>
 </html>

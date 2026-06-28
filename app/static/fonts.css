@@ -1,0 +1,14 @@
+@font-face {
+    font-family: "SairaSemiBold";
+    src: url(fonts/SairaExtraCondensed-SemiBold.ttf) format("truetype");
+}
+
+@font-face {
+    font-family: "SairaMedium";
+    src: url(fonts/SairaExtraCondensed-Medium.ttf) format("truetype");
+}
+
+@font-face {
+    font-family: "SairaRegular";
+    src: url(fonts/SairaExtraCondensed-Regular.ttf) format("truetype");
+}

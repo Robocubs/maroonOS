@@ -23,11 +23,4 @@ seat * hide_cursor 1000
 # --- Startup ---
 # Server is managed by the maroonOS-server systemd service.
 # Chromium launches after a brief delay to ensure the server is ready.
-exec sleep 3 && chromium-browser \
-    --kiosk \
-    --ozone-platform=wayland \
-    --enable-features=UseOzonePlatform \
-    --noerrdialogs \
-    --disable-infobars \
-    --no-first-run \
-    'file:///home/robocubs/maroonOS/frontends/max/dashboardMax.html'
+exec bash -c 'until curl -sf http://localhost:8080/settings > /dev/null 2>&1; do sleep 1; done && exec chromium-browser --kiosk --ozone-platform=wayland --enable-features=UseOzonePlatform --noerrdialogs --disable-infobars --no-first-run http://localhost:8080'
