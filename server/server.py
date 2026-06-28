@@ -160,7 +160,7 @@ def getThumbnail():
     if devMode:
         # return send_file('../frontends/assets/RobocubsLogo.png', mimetype='image/png')
         try:
-            with open('../docs/ThumbnailDemo.png', 'rb') as f:
+            with open(os.path.join(os.path.dirname(__file__), 'ThumbnailDemo.png'), 'rb') as f:
                 image_data = f.read()
             encoded_image = base64.b64encode(image_data).decode('utf-8')
             return jsonify({'image': encoded_image})
