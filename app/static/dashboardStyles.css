@@ -65,14 +65,16 @@ html, body {
 .titleBox {
     height: 150px;
     grid-column: 1/4;
+    margin-left: 8px;
+    margin-right: 8px;
 }
 
 .thumbnailBox {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 1009px;
     width: 1009px;
+    aspect-ratio: 1 / 1;
     grid-area: 2 / 1 / 4 / 2;
 }
 
@@ -81,6 +83,7 @@ html, body {
     height: 100%;
     object-fit: cover;
     border-radius: 20px;
+    display: block;
 }
 
 .infoBox {
@@ -130,7 +133,7 @@ html, body {
 
 #jobTitle1, #jobTitle2{
     padding-bottom: 30px;
-    padding-left: 34px;
+    padding-left: 42px;
     flex-shrink: 0;
     display: flex;
     justify-content: space-around;
@@ -473,10 +476,23 @@ html, body {
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: 1fr 1fr;
-    flex-direction: column;
     justify-content: center;
     align-content: center;
-    margin: 0px;
+    margin: 0;
+}
+
+#date {
+    font-size: 40px;
+    white-space: nowrap;
+    width: 100%;
+    text-align: center;
+}
+
+#year {
+    font-size: 40px;
+    white-space: nowrap;
+    width: 100%;
+    text-align: center;
 }
 
 #dow, #date, #year {

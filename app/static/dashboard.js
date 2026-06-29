@@ -313,7 +313,7 @@ class Dashboard {
         const now = new Date();
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const dayFontSizes = ['75', '75', '70', '50', '65', '75', '70'];
+        const dayFontSizes = ['60', '75', '70', '50', '65', '75', '70'];
 
         const hours = now.getHours();
         const ampm = hours >= 12 ? 'PM' : 'AM';

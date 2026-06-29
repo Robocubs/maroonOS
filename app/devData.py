@@ -43,7 +43,7 @@ def fake_job() -> dict:
                 "download": "/usb/AMPSTA~1.BGC",
             },
             "name": "AMPSTA~1.BGC",
-            "display_name": "3DBenchy_0.6n_0.2mm_PETG_MK4S_47m.bgcode",
+            "display_name": "3DBenchy3DBenchy3DBenchy3DBenchy3DBenchy3DBenchy3DBenchy_0.6n_0.2mm_PETG_MK4S_47m.bgcode",
             "path": "/usb",
             "size": 0,
             "m_timestamp": 1704831009,
