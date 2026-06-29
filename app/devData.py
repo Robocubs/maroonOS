@@ -2,6 +2,9 @@ import random
 
 
 def fake_status() -> dict:
+    printing = random.random() < 0.5
+    # state = "PRINTING" if printing else "IDLE"
+    state = "PRINTING"
     return {
         "job": {
             "id": 43,
@@ -15,11 +18,11 @@ def fake_status() -> dict:
             "read_only": "false",
         },
         "printer": {
-            "state": "PRINTING",
+            "state": state,
             "temp_bed": round(random.uniform(20, 80), 1),
-            "target_bed": 60.0,
+            "target_bed": 60.0 if printing else 0.0,
             "temp_nozzle": round(random.uniform(20, 230), 1),
-            "target_nozzle": 220.0,
+            "target_nozzle": 220.0 if printing else 0.0,
             "axis_z": 4.3,
             "flow": 100,
             "speed": round(random.uniform(0, 100), 1),
