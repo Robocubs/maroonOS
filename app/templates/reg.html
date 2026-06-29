@@ -8,12 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
 </head>
 <body>
-    <div id="sleep" class="full">
-        <video autoplay muted loop>
-            <source src="/static/videos/PortraitAnniversary.webm" type="video/webm">
-        </video>
-    </div>
-
     {% include '_panel.html' %}
     <script src="/static/dashboard.js"></script>
     <script>new Dashboard({{ printer_id }}, document.body);</script>
