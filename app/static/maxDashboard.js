@@ -11,11 +11,10 @@ function initMax(printerIds) {
     function applyScale() {
         const { width: pw, height: ph } = panels[0].getBoundingClientRect();
         const scale = Math.min(pw / 1440, ph / 2560);
-        const offsetX = (pw - 1440 * scale) / 2;
         panels.forEach(panel => {
             const inner = panel.querySelector('.panel-inner');
             inner.style.transformOrigin = 'top left';
-            inner.style.transform = `translate(${offsetX}px, 0) scale(${scale})`;
+            inner.style.transform = `scale(${scale})`;
         });
     }
 
