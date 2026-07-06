@@ -7,9 +7,15 @@ from dotenv import dotenv_values
 SERVER_DIR = Path(__file__).parent
 CONFIG_DIR = SERVER_DIR / "config"
 PRINTERS_JSON = CONFIG_DIR / "printers.json"
+SETTINGS_JSON = CONFIG_DIR / "settings.json"
 
 DEV_MODE = os.getenv("DEV_MODE", "false").lower() == "true"
 MODE = os.getenv("MODE", "reg")  # "reg" or "max"
+PEER_IPS_RAW = os.getenv("PEER_IPS", "")
+
+
+def get_env_peer_ips() -> list[str]:
+    return [ip.strip() for ip in PEER_IPS_RAW.split(",") if ip.strip()]
 
 
 class PrinterConfig(BaseModel):
@@ -82,3 +88,26 @@ init_printers()
 # Legacy alias used by server.py
 def load_printers() -> dict[int, PrinterConfig]:
     return _printers
+
+
+class SyncSettings(BaseModel):
+    peer_ips: list[str] = []
+    sync_enabled: bool = True
+    # Off by default: playlists are independent per Pi unless explicitly
+    # opted into mirroring. sync_enabled (playback timing) and this
+    # (playlist content) are deliberately separate toggles.
+    push_playlist_enabled: bool = False
+
+
+def load_settings() -> SyncSettings:
+    if not SETTINGS_JSON.exists():
+        return SyncSettings()
+    try:
+        return SyncSettings(**json.loads(SETTINGS_JSON.read_text()))
+    except (json.JSONDecodeError, ValueError):
+        return SyncSettings()
+
+
+def save_settings(settings: SyncSettings) -> None:
+    CONFIG_DIR.mkdir(exist_ok=True)
+    SETTINGS_JSON.write_text(json.dumps(settings.model_dump(), indent=2))

@@ -8,6 +8,8 @@ class ConfigDashboard {
         this._mpFilter = 'all';
         this._activePickerTarget = null; // { panelKey, list }
         this._playlistDebounce = {};
+        this._peerDebounce = null;
+        this._networkBound = false;
 
         this._bindNav();
         this._bindMediaUpload();
@@ -35,6 +37,7 @@ class ConfigDashboard {
         if (name === 'printers') this._loadPrinters();
         if (name === 'media') this._loadMedia();
         if (name === 'playlist') this._loadPlaylist();
+        if (name === 'network') this._loadNetwork();
     }
 
     // ---- Printers ----
@@ -597,6 +600,223 @@ class ConfigDashboard {
             }
         } catch (e) {
             console.error('Playlist auto-save failed:', e);
+        }
+    }
+
+    // ---- Network ----
+
+    async _loadNetwork() {
+        try {
+            const settings = await this._fetch('/config/api/settings');
+            document.getElementById('sync-enabled-toggle').checked = !!settings.sync_enabled;
+            document.getElementById('push-playlist-toggle').checked = !!settings.push_playlist_enabled;
+            this._renderPeerList(settings.peer_ips || []);
+        } catch (e) {
+            document.getElementById('peer-list').innerHTML =
+                `<div class="media-empty" style="color:#c0392b">Failed to load settings: ${e.message}</div>`;
+        }
+        this._updateSyncGroupDisplay();
+        this._bindNetworkOnce();
+    }
+
+    _updateSyncGroupDisplay() {
+        const el = document.getElementById('sync-group-value');
+        const key = window.screensaverState?.syncGroupKey;
+        el.textContent = key || 'Computed after playback starts';
+        el.classList.toggle('sync-group-pending', !key);
+    }
+
+    _bindNetworkOnce() {
+        if (this._networkBound) return;
+        this._networkBound = true;
+
+        document.getElementById('sync-enabled-toggle').addEventListener('change', async () => {
+            await this._saveSyncSettings();
+            const ss = document.getElementById('sync-toggle-save-status');
+            ss.classList.add('visible');
+            setTimeout(() => ss.classList.remove('visible'), 2000);
+        });
+
+        document.getElementById('sync-group-refresh').addEventListener('click', () => {
+            this._updateSyncGroupDisplay();
+        });
+
+        document.getElementById('add-peer-btn').addEventListener('click', () => {
+            this._addPeerRow('');
+        });
+
+        document.getElementById('push-playlist-toggle').addEventListener('change', () => {
+            this._scheduleSavePeers();
+        });
+
+        document.getElementById('save-peers-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('save-peers-btn');
+            btn.disabled = true;
+            await this._saveSyncSettings();
+            btn.disabled = false;
+            const ss = document.getElementById('peers-save-status');
+            ss.classList.add('visible');
+            setTimeout(() => ss.classList.remove('visible'), 2000);
+            this._clearSyncTestResults();
+        });
+
+        document.getElementById('test-sync-btn').addEventListener('click', () => this._runSyncTest());
+    }
+
+    _renderPeerList(ips) {
+        const list = document.getElementById('peer-list');
+        list.innerHTML = '';
+        if (ips.length === 0) {
+            this._addPeerRow('');
+        } else {
+            ips.forEach(ip => this._addPeerRow(ip));
+        }
+    }
+
+    _addPeerRow(ip) {
+        const list = document.getElementById('peer-list');
+        const row = document.createElement('div');
+        row.className = 'peer-row';
+        row.innerHTML = `
+            <input class="form-input peer-input" type="text" value="${this._esc(ip)}" placeholder="192.168.1.21">
+            <button class="playlist-item-remove" title="Remove">&times;</button>
+        `;
+        row.querySelector('.peer-input').addEventListener('input', () => this._scheduleSavePeers());
+        row.querySelector('.playlist-item-remove').addEventListener('click', () => {
+            row.remove();
+            this._scheduleSavePeers();
+        });
+        list.appendChild(row);
+    }
+
+    _getPeerIps() {
+        return Array.from(document.querySelectorAll('#peer-list .peer-input'))
+            .map(i => i.value.trim())
+            .filter(Boolean);
+    }
+
+    _scheduleSavePeers() {
+        clearTimeout(this._peerDebounce);
+        this._peerDebounce = setTimeout(() => {
+            this._saveSyncSettings();
+            this._clearSyncTestResults();
+        }, 500);
+    }
+
+    async _saveSyncSettings() {
+        try {
+            return await this._fetch('/config/api/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sync_enabled: document.getElementById('sync-enabled-toggle').checked,
+                    push_playlist_enabled: document.getElementById('push-playlist-toggle').checked,
+                    peer_ips: this._getPeerIps(),
+                }),
+            });
+        } catch (e) {
+            console.error('Settings auto-save failed:', e);
+            return null;
+        }
+    }
+
+    _clearSyncTestResults() {
+        document.getElementById('sync-test-results').innerHTML = '';
+        const btn = document.getElementById('test-sync-btn');
+        btn.textContent = 'Test Sync';
+    }
+
+    async _runSyncTest() {
+        const btn = document.getElementById('test-sync-btn');
+        const results = document.getElementById('sync-test-results');
+        btn.disabled = true;
+        btn.textContent = 'Testing…';
+        results.innerHTML = '';
+
+        const targets = [{ label: 'This Pi', url: '/config/api/sync/test' }]
+            .concat(this._getPeerIps().map(ip => ({ label: ip, url: `http://${ip}:8080/config/api/sync/test` })));
+
+        const settled = await Promise.allSettled(
+            targets.map(t => this._fetch(t.url).then(data => ({ ...t, data })))
+        );
+
+        const rows = settled.map((r, i) => r.status === 'fulfilled'
+            ? r.value
+            : { ...targets[i], error: r.reason?.message || 'Unreachable' });
+
+        this._renderSyncResults(rows);
+
+        btn.disabled = false;
+        btn.textContent = 'Retest';
+    }
+
+    _renderSyncResults(rows) {
+        const results = document.getElementById('sync-test-results');
+        results.innerHTML = '';
+
+        const thisPi = rows.find(r => r.label === 'This Pi' && r.data);
+        const reachable = rows.filter(r => r.data);
+        const unreachable = rows.filter(r => r.error);
+        const groups = new Set(reachable.map(r => r.data.sync_group));
+
+        rows.forEach(r => {
+            const row = document.createElement('div');
+            row.className = 'sync-result-row';
+            if (r.error) {
+                row.innerHTML = `
+                    <div class="sync-result-label">${this._esc(r.label)}</div>
+                    <span class="sync-badge unreachable">Unreachable</span>
+                `;
+            } else {
+                const pct = Math.min(100, (r.data.position_ms / r.data.total_duration_ms) * 100);
+                const sameGroup = thisPi ? r.data.sync_group === thisPi.data.sync_group : false;
+                const offsetSec = Math.round(r.data.offset_ms / 1000);
+                row.innerHTML = `
+                    <div class="sync-result-label">${this._esc(r.label)}</div>
+                    <span class="sync-badge ${sameGroup ? 'match' : 'differ'}">${r.data.sync_group}</span>
+                    <div class="upload-progress-bar sync-progress-bar">
+                        <div class="upload-progress-fill" style="width:${pct}%; background-color:${sameGroup ? 'var(--prusa-orange)' : 'var(--grey)'}"></div>
+                    </div>
+                    <div class="sync-result-meta">Item ${r.data.item_index} of ${r.data.item_count} · +${offsetSec}s offset</div>
+                `;
+            }
+            results.appendChild(row);
+        });
+
+        const summary = document.createElement('div');
+        summary.className = 'sync-summary';
+
+        if (unreachable.length && reachable.length <= 1) {
+            summary.classList.add('warn');
+            summary.textContent = `Could not reach ${unreachable.length} peer(s).`;
+        } else if (groups.size > 1) {
+            summary.classList.add('neutral');
+            summary.textContent = 'Displays are in different sync groups and will play independently.';
+        } else {
+            const positions = reachable.map(r => r.data.position_ms);
+            const spread = positions.length > 1 ? Math.max(...positions) - Math.min(...positions) : 0;
+            if (spread <= 500) {
+                summary.classList.add('ok');
+                summary.textContent = '✓ In sync';
+            } else {
+                summary.classList.add('warn');
+                summary.textContent = `⚠ Same group, drift detected (${Math.round(spread)}ms) — check NTP on each Pi`;
+            }
+        }
+        results.prepend(summary);
+
+        if (unreachable.length) {
+            const unreachLine = document.createElement('div');
+            unreachLine.className = 'sync-summary warn';
+            unreachLine.textContent = `⚠ Could not reach: ${unreachable.map(r => r.label).join(', ')}`;
+            results.appendChild(unreachLine);
+        }
+
+        if (reachable.some(r => r.data.video_durations_estimated)) {
+            const estNote = document.createElement('div');
+            estNote.className = 'sync-summary estimate-note';
+            estNote.textContent = 'Video durations were estimated — test accuracy may vary.';
+            results.appendChild(estNote);
         }
     }
 

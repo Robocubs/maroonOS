@@ -16,6 +16,7 @@
         <button class="nav-item active" data-section="printers">Printers</button>
         <button class="nav-item" data-section="media">Media Library</button>
         <button class="nav-item" data-section="playlist">Playlist</button>
+        <button class="nav-item" data-section="network">Network</button>
     </nav>
 </aside>
 
@@ -62,6 +63,76 @@
             <h1 class="section-title">Playlist</h1>
         </div>
         <div id="playlist-panels" class="playlist-panels"></div>
+    </section>
+
+    <!-- NETWORK -->
+    <section id="section-network" class="section hidden">
+        <div class="section-header">
+            <h1 class="section-title">Network</h1>
+        </div>
+        <div class="network-cards">
+            <div class="network-card" id="sync-card">
+                <div class="network-card-header">
+                    <div class="network-card-title">Playback Sync</div>
+                </div>
+                <div class="toggle-row">
+                    <div class="toggle-row-label">
+                        <div>Sync screensaver with other displays</div>
+                        <div class="toggle-row-sublabel">
+                            When enabled, displays that share content of the same length will play in lockstep.
+                            Displays with different content lengths play independently.
+                        </div>
+                        <div class="toggle-row-note">Takes effect the next time the screensaver activates.</div>
+                    </div>
+                    <div class="toggle-row-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="sync-enabled-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="save-status" id="sync-toggle-save-status">Saved &check;</span>
+                    </div>
+                </div>
+                <div class="sync-group-row">
+                    <div class="sync-group-label">Sync group</div>
+                    <code class="sync-group-code" id="sync-group-value">Computed after playback starts</code>
+                    <button class="link-btn" id="sync-group-refresh">Refresh</button>
+                </div>
+                <div class="sync-group-sublabel">Displays showing the same sync group key will play in lockstep.</div>
+                <button class="btn btn-secondary btn-sm" id="test-sync-btn">Test Sync</button>
+                <div id="sync-test-results" class="sync-test-results"></div>
+            </div>
+
+            <div class="network-card" id="peers-card">
+                <div class="network-card-header">
+                    <div class="network-card-title">Peer Pi Addresses</div>
+                </div>
+                <div class="network-card-desc">
+                    Enter the IP addresses of the other Pis on this network — not this one.
+                    These are used to compare playback timing in Test Sync above.
+                </div>
+                <div id="peer-list" class="peer-list"></div>
+                <div class="toggle-row push-toggle-row">
+                    <div class="toggle-row-label">
+                        <div>Also push playlist changes to these Pis</div>
+                        <div class="toggle-row-sublabel">
+                            Off by default — playlists stay independent per Pi. Enable this only if you want every
+                            peer to mirror this Pi's exact playlist content whenever you save it here.
+                        </div>
+                    </div>
+                    <div class="toggle-row-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="push-playlist-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="network-card-actions">
+                    <button class="btn btn-secondary btn-sm" id="add-peer-btn">+ Add Pi</button>
+                    <button class="btn btn-primary btn-sm" id="save-peers-btn">Save</button>
+                    <span class="save-status" id="peers-save-status">Saved &check;</span>
+                </div>
+            </div>
+        </div>
     </section>
 
 </main>

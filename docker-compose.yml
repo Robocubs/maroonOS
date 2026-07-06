@@ -11,6 +11,9 @@ services:
     environment:
       - DEV_MODE=${DEV_MODE:-false}
       - MODE=${MODE:-reg}
+      # Comma-separated IPs/hostnames of other Pis to push playlist changes to
+      # and compare screensaver sync against (port 8080 assumed).
+      - PEER_IPS=${PEER_IPS:-}
     volumes:
       - ./app/config:/app/config
       - ./app/static/videos:/app/static/videos
