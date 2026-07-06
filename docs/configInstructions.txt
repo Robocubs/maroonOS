@@ -139,6 +139,15 @@ Configure Display (Sway)
     Chromium will open http://localhost:8080 automatically — no file paths needed.
 
 Configure Auto Login to Sway
+    Switch the boot target away from the default graphical desktop/display
+    manager to a plain text console — otherwise the Pi boots straight into
+    the default Raspberry Pi desktop instead of the console session this
+    autologin + Sway setup relies on, and there is no separate "select
+    Sway" step anywhere else:
+        sudo raspi-config
+        System Options -> Boot / Auto Login -> Console Autologin
+        (non-interactively: sudo raspi-config nonint do_boot_behaviour B2)
+
     Edit the getty service to auto-login:
         sudo systemctl edit getty@tty1
 
