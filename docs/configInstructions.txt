@@ -39,8 +39,12 @@ Install Dependencies
         # Git
         sudo apt install -y git
 
-        # Chromium (kiosk browser) and curl (used by sway-config to wait for server)
-        sudo apt install -y chromium-browser curl
+        # Chromium (kiosk browser) and curl (used by sway-config to wait for server).
+        # The package/binary is "chromium" on this Debian-based OS, not
+        # "chromium-browser" — that name doesn't exist here and sway-config's
+        # exec line will silently fail to launch anything if you install the
+        # wrong one.
+        sudo apt install -y chromium curl
 
     Log out and back in for the docker group change to take effect.
 
