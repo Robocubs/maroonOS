@@ -139,9 +139,18 @@ Configure Auto Login to Sway
 
 Configure Display (Sway)
     SSH back in once the Pi has rebooted. Sway is now actually running on
-    the physical display (using its own default config), so swaymsg can
-    talk to it immediately from this SSH session — no need to manually
-    start a temporary sway session first:
+    the physical display (using its own default config) — but swaymsg
+    finds the running compositor via the SWAYSOCK environment variable,
+    which only exists in the process that actually launched Sway (the
+    tty1 autologin session), not in a fresh SSH login. Point this session
+    at the running socket first:
+        export SWAYSOCK=$(ls /run/user/$(id -u)/sway-ipc.* 2>/dev/null | head -n 1)
+
+    If that leaves SWAYSOCK empty, Sway isn't actually running — check
+    `who` for an active tty1 session and `cat ~/.bash_profile` /
+    `systemctl cat getty@tty1` to confirm the previous section's changes
+    took effect, rather than continuing on from here.
+
         swaymsg -t get_outputs
         Note the Name field (e.g. HDMI-A-1)
 
