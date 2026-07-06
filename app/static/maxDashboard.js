@@ -3,9 +3,19 @@ function initMax(printerIds) {
     const panels = document.querySelectorAll('.panel');
     const printing = [false, false, false];
 
+    const overlayPlayer = typeof ScreensaverPlayerMax !== 'undefined'
+        ? new ScreensaverPlayerMax(overlay, '/config/api/playlist/max', 'landscape')
+        : null;
+
     function updateOverlay() {
         const anyPrinting = printing.some(Boolean);
-        overlay.style.display = anyPrinting ? 'none' : '';
+        if (anyPrinting) {
+            overlay.style.display = 'none';
+            if (overlayPlayer) overlayPlayer.stop();
+        } else {
+            overlay.style.display = '';
+            if (overlayPlayer) overlayPlayer.start();
+        }
     }
 
     function applyScale() {
@@ -26,7 +36,9 @@ function initMax(printerIds) {
             onStateChange(isPrinting) {
                 printing[i] = isPrinting;
                 updateOverlay();
-            }
+            },
+            makeScreensaverPlayer: (el) =>
+                new ScreensaverPlayerMax(el, '/config/api/playlist/max', 'portrait'),
         });
     });
 

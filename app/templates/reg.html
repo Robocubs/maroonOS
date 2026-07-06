@@ -9,6 +9,8 @@
 </head>
 <body>
     {% include '_panel.html' %}
+    <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});</script>
+    <script src="/static/screensaverPlayer.js"></script>
     <script src="/static/dashboard.js"></script>
     <script>new Dashboard({{ printer_id }}, document.body);</script>
 </body>

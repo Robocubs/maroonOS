@@ -53,21 +53,8 @@ Setup Dashboard
     Navigate to the maroonOS directory:
         cd ~/maroonOS
 
-    Create the .env file(s) inside the app/ directory:
-        For Single Printer:
-            cp docs/envTemplate.txt app/.env.1
-            nano app/.env.1
-
-        For Three Printers:
-            cp docs/envTemplate.txt app/.env.1 && nano app/.env.1
-            cp docs/envTemplate.txt app/.env.2 && nano app/.env.2
-            cp docs/envTemplate.txt app/.env.3 && nano app/.env.3
-
-        Fill in IP, API_KEY, PRINTER_NAME, and FIRMWARE for each printer.
-        Save and exit (CTRL + X, Y, Enter).
-
-        NOTE: Printer IDs correspond to .env file numbers (.env.1 = printer 1, etc.).
-        For a single printer setup, always use .env.1.
+    No manual config files needed. Printer credentials are configured through
+    the web UI after the server starts (see "Configure Printers" below).
 
 Configure Server Startup (Docker via systemd)
     Copy the systemd service file:
@@ -135,6 +122,19 @@ Configure Auto Login to Sway
 
     Reboot to verify everything starts automatically:
         sudo reboot
+
+Configure Printers
+    Once the server is running and Chromium has opened, open a browser on another
+    device connected to the same network and navigate to:
+        http://<pi-hostname>.local:8080/config
+        (e.g. http://3da.local:8080/config or http://3db.local:8080/config)
+
+    Go to the Printers section and fill in the IP address, API key, printer name,
+    and firmware for each printer slot. Use "Test Connection" to verify each one,
+    then click "Save".
+
+    The dashboard at http://<pi-hostname>.local:8080 will become available once
+    at least one printer is configured and saved.
 
 Checking Logs
     Server logs:

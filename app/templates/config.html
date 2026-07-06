@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/colors.css">
+    <link rel="stylesheet" href="/static/fonts.css">
+    <link rel="stylesheet" href="/static/configDashboard.css">
+    <title>maroonOS — Config</title>
+</head>
+<body data-mode="{{ mode }}">
+
+<aside class="sidebar">
+    <div class="sidebar-logo">maroonOS</div>
+    <nav class="sidebar-nav">
+        <button class="nav-item active" data-section="printers">Printers</button>
+        <button class="nav-item" data-section="media">Media Library</button>
+        <button class="nav-item" data-section="playlist">Playlist</button>
+        <button class="nav-item" data-section="network">Network</button>
+    </nav>
+</aside>
+
+<main class="main-area">
+
+    <!-- PRINTERS -->
+    <section id="section-printers" class="section">
+        <div class="section-header">
+            <h1 class="section-title">Printers</h1>
+        </div>
+        <div id="printer-cards" class="printer-cards"></div>
+    </section>
+
+    <!-- MEDIA LIBRARY -->
+    <section id="section-media" class="section hidden">
+        <div class="section-header">
+            <h1 class="section-title">Media Library</h1>
+            <div class="filter-pills">
+                <button class="pill active" data-filter="all">All</button>
+                <button class="pill" data-filter="image">Images</button>
+                <button class="pill" data-filter="video">Videos</button>
+            </div>
+        </div>
+        <div id="media-grid" class="media-grid"></div>
+        <div id="upload-zone" class="upload-zone">
+            <div class="upload-zone-inner">
+                <div class="upload-icon">&#8679;</div>
+                <div class="upload-label">Drag files here or <span class="upload-link">click to upload</span></div>
+                <div class="upload-hint">Images: jpg, jpeg, png, gif, webp &nbsp;|&nbsp; Videos: mp4, webm, mov</div>
+                <div id="upload-progress-wrap" class="upload-progress-wrap hidden">
+                    <div class="upload-progress-bar">
+                        <div id="upload-progress-fill" class="upload-progress-fill"></div>
+                    </div>
+                    <div id="upload-status" class="upload-status"></div>
+                </div>
+            </div>
+            <input type="file" id="file-input" class="hidden" accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mov" multiple>
+        </div>
+    </section>
+
+    <!-- PLAYLIST -->
+    <section id="section-playlist" class="section hidden">
+        <div class="section-header">
+            <h1 class="section-title">Playlist</h1>
+        </div>
+        <div id="playlist-panels" class="playlist-panels"></div>
+    </section>
+
+    <!-- NETWORK -->
+    <section id="section-network" class="section hidden">
+        <div class="section-header">
+            <h1 class="section-title">Network</h1>
+        </div>
+        <div class="network-cards">
+            <div class="network-card" id="sync-card">
+                <div class="network-card-header">
+                    <div class="network-card-title">Playback Sync</div>
+                </div>
+                <div class="toggle-row">
+                    <div class="toggle-row-label">
+                        <div>Sync screensaver with other displays</div>
+                        <div class="toggle-row-sublabel">
+                            When enabled, displays that share content of the same length will play in lockstep.
+                            Displays with different content lengths play independently.
+                        </div>
+                        <div class="toggle-row-note">Takes effect the next time the screensaver activates.</div>
+                    </div>
+                    <div class="toggle-row-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="sync-enabled-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="save-status" id="sync-toggle-save-status">Saved &check;</span>
+                    </div>
+                </div>
+                <div class="sync-group-row">
+                    <div class="sync-group-label">Sync group</div>
+                    <code class="sync-group-code" id="sync-group-value">Computed after playback starts</code>
+                    <button class="link-btn" id="sync-group-refresh">Refresh</button>
+                </div>
+                <div class="sync-group-sublabel">Displays showing the same sync group key will play in lockstep.</div>
+                <button class="btn btn-secondary btn-sm" id="test-sync-btn">Test Sync</button>
+                <div id="sync-test-results" class="sync-test-results"></div>
+            </div>
+
+            <div class="network-card" id="peers-card">
+                <div class="network-card-header">
+                    <div class="network-card-title">Peer Pi Addresses</div>
+                </div>
+                <div class="network-card-desc">
+                    Enter the IP addresses of the other Pis on this network — not this one.
+                    These are used to compare playback timing in Test Sync above.
+                </div>
+                <div id="peer-list" class="peer-list"></div>
+                <div class="toggle-row push-toggle-row">
+                    <div class="toggle-row-label">
+                        <div>Also push playlist changes to these Pis</div>
+                        <div class="toggle-row-sublabel">
+                            Off by default — playlists stay independent per Pi. Enable this only if you want every
+                            peer to mirror this Pi's exact playlist content whenever you save it here.
+                        </div>
+                    </div>
+                    <div class="toggle-row-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="push-playlist-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="network-card-actions">
+                    <button class="btn btn-secondary btn-sm" id="add-peer-btn">+ Add Pi</button>
+                    <button class="btn btn-primary btn-sm" id="save-peers-btn">Save</button>
+                    <span class="save-status" id="peers-save-status">Saved &check;</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Media picker modal -->
+<div id="media-picker-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-box">
+        <div class="modal-header">
+            <span class="modal-title">Add from Library</span>
+            <button class="modal-close" id="media-picker-close">&times;</button>
+        </div>
+        <div class="filter-pills modal-pills">
+            <button class="pill active" data-mpfilter="all">All</button>
+            <button class="pill" data-mpfilter="image">Images</button>
+            <button class="pill" data-mpfilter="video">Videos</button>
+        </div>
+        <div id="media-picker-grid" class="media-grid modal-grid"></div>
+    </div>
+</div>
+
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});</script>
+<script src="/static/configDashboard.js"></script>
+</body>
+</html>

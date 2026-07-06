@@ -1,6 +1,11 @@
 app/.env.1
 app/.env.2
 app/.env.3
+app/config/*.json
+app/static/images/*
+!app/static/images/.gitkeep
+app/static/videos/*
+!app/static/videos/.gitkeep
 .DS_Store
 CLAUDE.md
 app/venv/

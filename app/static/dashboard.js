@@ -1,5 +1,5 @@
 class Dashboard {
-    constructor(printerId, root, { onStateChange } = {}) {
+    constructor(printerId, root, { onStateChange, makeScreensaverPlayer } = {}) {
         this.printerId = printerId;
         this.root = root;
         this.onStateChange = onStateChange || null;
@@ -30,6 +30,14 @@ class Dashboard {
         this.$('#progressNotices').style.animation = 'none';
         if (this.sleep) this.sleep.style.display = 'none';
         if (this.live) this.live.style.display = 'none';
+
+        if (this.sleep && typeof ScreensaverPlayer !== 'undefined') {
+            this.screensaverPlayer = makeScreensaverPlayer
+                ? makeScreensaverPlayer(this.sleep)
+                : new ScreensaverPlayer(this.sleep, '/config/api/playlist/reg');
+        } else {
+            this.screensaverPlayer = null;
+        }
 
         this._initCharts();
         this.mainLoop();
@@ -169,7 +177,7 @@ class Dashboard {
                     } else {
                         view.style.width = '90%';
                         view.style.height = '90%';
-                        view.src = '/static/images/RobocubsLogo.png';
+                        view.src = '/static/icons/RobocubsLogo.png';
                     }
                 };
             })
@@ -177,7 +185,7 @@ class Dashboard {
                 const view = this.$('#thumbnail');
                 view.style.width = '90%';
                 view.style.height = '90%';
-                view.src = '/static/images/RobocubsLogo.png';
+                view.src = '/static/icons/RobocubsLogo.png';
             });
     }
 
@@ -215,6 +223,7 @@ class Dashboard {
         }
         this.isPrinting = true;
         this._updateDate();
+        if (this.screensaverPlayer) this.screensaverPlayer.stop();
         if (this.live) this.live.style.display = '';
         if (this.sleep) this.sleep.style.display = 'none';
         if (this.onStateChange) this.onStateChange(true);
@@ -224,6 +233,8 @@ class Dashboard {
         this.isPrinting = false;
         if (this.live) this.live.style.display = 'none';
         if (this.sleep) this.sleep.style.display = '';
+        if (this.screensaverPlayer) this.screensaverPlayer.start();
+        if (this.screensaverPlayer) this.screensaverPlayer.checkForUpdate();
         if (this.onStateChange) this.onStateChange(false);
     }
 
