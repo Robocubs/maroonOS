@@ -1,6 +1,5 @@
 OS Install
-    Use the Raspberry Pi Imager to install Raspberry Pi OS Bookworm (64 bit) with a Desktop environment onto a microSD card
-        NOTE: Use the full Desktop image (not Lite) — the desktop drivers improve hardware acceleration even though Sway replaces LXDE as the session
+    Use the Raspberry Pi Imager to install the newest 64-bit version of Raspberry PI OS with a Desktop environment onto a microSD card
         Use CMD + Shift + X to open the Imager settings (CTRL + Shift + X on Windows)
         Set hostname to 3da or 3db respectively
         Enable SSH in the Imager settings and set a username/password
