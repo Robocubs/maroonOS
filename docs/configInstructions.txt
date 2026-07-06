@@ -65,6 +65,12 @@ Configure Server Startup (Docker via systemd)
         Add 'Environment=MODE=max' under the [Service] section
         Save and exit (CTRL + X, Y, Enter)
 
+    If this Pi should sync its screensaver with other Pis on the network,
+    add the other Pis' LAN IPs here too (see "Configure Network Sync" below
+    for what this does — it can also be set later from the web UI instead):
+        Add 'Environment=PEER_IPS=192.168.1.21,192.168.1.22' (comma-separated,
+        no ports — every Pi's container always listens on 8080)
+
     Enable and start the service:
         sudo systemctl daemon-reload
         sudo systemctl enable maroonOS-server
@@ -87,15 +93,34 @@ Configure Display (Sway)
         For Three Printers:
             cp ~/maroonOS/pi/max/sway-config ~/.config/sway/config
 
-    Edit the config if your output name or rotation differs:
+    If your output name differs from HDMI-A-1, edit the config and update
+    every "output HDMI-A-1 ..." line to match:
         nano ~/.config/sway/config
-        Update the output line to match your display name/rotation
-        Save and exit (CTRL + X, Y, Enter)
 
-    To check portrait rotation direction, temporarily run:
-        sway
-        Then run: swaymsg output HDMI-A-1 transform 90
-        If the display is upside-down, use 270 instead. Update the config accordingly.
+    Rotate the Display
+        The config file's "output" line ends in a transform value that
+        controls rotation:
+            output HDMI-A-1 transform 90
+        Valid values: 0 (landscape, no rotation), 90 (rotated clockwise),
+        180 (upside-down landscape), 270 (rotated counter-clockwise).
+
+        Single Printer (reg) ships with transform 90 for portrait.
+        Three Printer (max) ships with transform 0 for landscape.
+
+        To check which portrait direction is correct for your monitor's
+        physical mounting before committing to a value, temporarily run:
+            sway
+        Then, in another SSH session, try each value live without editing
+        the file yet:
+            swaymsg output HDMI-A-1 transform 90
+            swaymsg output HDMI-A-1 transform 270
+        Whichever one displays right-side up is correct — edit
+        ~/.config/sway/config to set that value permanently, then exit the
+        temporary `sway` session (CTRL + ALT + F2 to switch to another
+        virtual terminal if the display is unusable, or SSH in and run
+        `swaymsg exit`).
+
+        Save and exit (CTRL + X, Y, Enter).
 
     Chromium will open http://localhost:8080 automatically — no file paths needed.
 
@@ -135,6 +160,44 @@ Configure Printers
 
     The dashboard at http://<pi-hostname>.local:8080 will become available once
     at least one printer is configured and saved.
+
+Configure Network Sync (optional)
+    If multiple Pis are on the same network and you want their screensavers
+    to play in lockstep (e.g. all three showing a 60-second clip starting at
+    the same moment), each Pi needs the other Pis' LAN IPs added as peers.
+    This relies on all Pis' clocks staying in sync via NTP — true by default
+    on a shared LAN switch, no extra setup needed for that part.
+
+    On each Pi, open http://<pi-hostname>.local:8080/config, go to the
+    Network section, and:
+        Enter the OTHER Pis' IPs (not this one) under "Peer Pi Addresses",
+        one per box — bare IPs only, no port (every Pi's container always
+        listens on 8080, so a port typed here will be ignored/break the URL)
+        Click "Save"
+        Toggle "Sync screensaver with other displays" on
+        This must be repeated on every Pi — there's no central/shared
+        config; each Pi only knows about the peers you enter on its own
+        /config page
+
+    Two Pis only actually play in lockstep if their screensaver playlists
+    contain the same set of item lengths (regardless of order or which
+    files those are — the "Sync group" code on this page identifies this).
+    Pis with different content lengths play independently with no error or
+    interference — this is expected if they're not meant to be paired.
+
+    Use "Test Sync" on this page to confirm two Pis agree: it should report
+    "✓ In sync" if their sync groups match and their clocks agree closely.
+
+    Playlist changes are NOT shared between Pis by default — each Pi keeps
+    its own independently-managed playlist. If you'd rather have every Pi
+    mirror one Pi's exact playlist content automatically whenever it's
+    saved, enable "Also push playlist changes to these Pis" — off by
+    default, and separate from the sync toggle above.
+
+    PEER_IPS can also be set once via the systemd service file's
+    Environment= line (see "Configure Server Startup" above) instead of the
+    web UI — useful if you want peers baked in at deploy time rather than
+    configured per-Pi afterward. Peers from both sources are merged.
 
 Checking Logs
     Server logs:
