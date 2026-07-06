@@ -3,8 +3,8 @@ import random
 
 def fake_status() -> dict:
     printing = random.random() < 0.5
-    # state = "PRINTING" if printing else "IDLE"
     state = "PRINTING"
+    state = "PRINTING" if printing else "IDLE"      # Comment out to simulate a printer that is always printing
     return {
         "job": {
             "id": 43,
