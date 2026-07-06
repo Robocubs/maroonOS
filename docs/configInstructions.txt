@@ -93,51 +93,6 @@ Configure Server Startup (Docker via systemd)
     Verify it started correctly:
         sudo systemctl status maroonOS-server
 
-Configure Display (Sway)
-    Find your display output name:
-        swaymsg -t get_outputs
-        Note the Name field (e.g. HDMI-A-1)
-
-    Copy the appropriate Sway config:
-        mkdir -p ~/.config/sway
-
-        For Single Printer:
-            cp ~/maroonOS/pi/reg/sway-config ~/.config/sway/config
-
-        For Three Printers:
-            cp ~/maroonOS/pi/max/sway-config ~/.config/sway/config
-
-    If your output name differs from HDMI-A-1, edit the config and update
-    every "output HDMI-A-1 ..." line to match:
-        nano ~/.config/sway/config
-
-    Rotate the Display
-        The config file's "output" line ends in a transform value that
-        controls rotation:
-            output HDMI-A-1 transform 90
-        Valid values: 0 (landscape, no rotation), 90 (rotated clockwise),
-        180 (upside-down landscape), 270 (rotated counter-clockwise).
-
-        Single Printer (reg) ships with transform 90 for portrait.
-        Three Printer (max) ships with transform 0 for landscape.
-
-        To check which portrait direction is correct for your monitor's
-        physical mounting before committing to a value, temporarily run:
-            sway
-        Then, in another SSH session, try each value live without editing
-        the file yet:
-            swaymsg output HDMI-A-1 transform 90
-            swaymsg output HDMI-A-1 transform 270
-        Whichever one displays right-side up is correct — edit
-        ~/.config/sway/config to set that value permanently, then exit the
-        temporary `sway` session (CTRL + ALT + F2 to switch to another
-        virtual terminal if the display is unusable, or SSH in and run
-        `swaymsg exit`).
-
-        Save and exit (CTRL + X, Y, Enter).
-
-    Chromium will open http://localhost:8080 automatically — no file paths needed.
-
 Configure Auto Login to Sway
     Switch the boot target away from the default graphical desktop/display
     manager to a plain text console — otherwise the Pi boots straight into
@@ -168,8 +123,62 @@ Configure Auto Login to Sway
 
     Save and exit (CTRL + X, Y, Enter).
 
-    Reboot to verify everything starts automatically:
+    Reboot so Sway actually starts. This will run with Sway's own default
+    config for now, since the maroonOS-specific config isn't copied until
+    the next section — that's expected, and lets the next section test
+    output/rotation against a genuinely running session instead of a
+    temporary manual one:
         sudo reboot
+
+Configure Display (Sway)
+    SSH back in once the Pi has rebooted. Sway is now actually running on
+    the physical display (using its own default config), so swaymsg can
+    talk to it immediately from this SSH session — no need to manually
+    start a temporary sway session first:
+        swaymsg -t get_outputs
+        Note the Name field (e.g. HDMI-A-1)
+
+    Copy the appropriate Sway config:
+        mkdir -p ~/.config/sway
+
+        For Single Printer:
+            cp ~/maroonOS/pi/reg/sway-config ~/.config/sway/config
+
+        For Three Printers:
+            cp ~/maroonOS/pi/max/sway-config ~/.config/sway/config
+
+    If your output name differs from HDMI-A-1, edit the config and update
+    every "output HDMI-A-1 ..." line to match:
+        nano ~/.config/sway/config
+
+    Rotate the Display
+        The config file's "output" line ends in a transform value that
+        controls rotation:
+            output HDMI-A-1 transform 90
+        Valid values: 0 (landscape, no rotation), 90 (rotated clockwise),
+        180 (upside-down landscape), 270 (rotated counter-clockwise).
+
+        Single Printer (reg) ships with transform 90 for portrait.
+        Three Printer (max) ships with transform 0 for landscape.
+
+        To check which portrait direction is correct for your monitor's
+        physical mounting, try each value live against the already-running
+        session (it's already up from the reboot above, no temporary
+        session needed):
+            swaymsg output HDMI-A-1 transform 90
+            swaymsg output HDMI-A-1 transform 270
+        Whichever one displays right-side up is correct — edit
+        ~/.config/sway/config to set that value permanently.
+
+        Save and exit (CTRL + X, Y, Enter).
+
+    Sway needs to reload to pick up this new config, including the
+    Chromium kiosk autostart line. Either kill the running session so
+    getty immediately relaunches it fresh, or reboot again:
+        sudo pkill sway
+        (or: sudo reboot)
+
+    Chromium will open http://localhost:8080 automatically — no file paths needed.
 
 Configure Printers
     Once the server is running and Chromium has opened, open a browser on another
