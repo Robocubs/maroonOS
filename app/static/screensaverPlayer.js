@@ -302,11 +302,17 @@ class ScreensaverPlayer {
     }
 
     // Fire-and-forget: let the SW intercept these fetches so it can cache the
-    // responses. Subsequent offline loads read from that SW cache via blob URLs.
+    // responses, for every item in the playlist — not just images. Without
+    // this, a video that hasn't played yet is never cached until its turn
+    // comes up during actual playback, so an early offline transition would
+    // leave later videos with nothing to fall back to. Images additionally
+    // get read back out via _blobUrlForImage's cache lookup; videos rely on
+    // the SW transparently serving the cached response when the <video>
+    // element's own request hits the same URL.
     _prefetchMedia() {
         if (!this._playlist) return;
         for (const item of this._playlist) {
-            if (item.type === 'image') fetch(item.path).catch(() => {});
+            fetch(item.path).catch(() => {});
         }
     }
 
