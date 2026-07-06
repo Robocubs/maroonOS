@@ -12,3 +12,22 @@ A settings server is currently in development. Its goal is to allow for an easie
 ## frontends<br>
 The frontends are built in HTML, CSS, and JavaScript which is running on Chromium in kiosk mode. The dashboard.html file is the main view that is displayed when the printer is running. Its supporting files are dashboardLoop.js and dashboardStyles.css. The sleep.html file is the sleep screen that is displayed when the printer is idle or disconnected. Its supporting files are sleepLoop.js and sleepStyles.css. There are some additional frontends files that aid in the operation of the frontends across the board to create a unified color scheme, font family, interface startup, and asset library. 
 <br><br>*Developed for FRC Team 1701 - Robocubs*
+
+## Config Dashboard<br>
+maroonOS includes a built-in configuration dashboard accessible at `http://<pi-ip>:8080/config` (or `http://localhost:8080/config` locally). It provides a graphical interface to manage everything that previously required SSH access.
+
+**What it manages:**
+- **Printers** — Set the name, firmware version, IP address, and API key for each printer slot (1–3). Changes take effect immediately without a server restart. Use "Test Connection" to verify connectivity before saving.
+- **Media Library** — Upload images and videos to use as screensaver content. Drag-and-drop or click to upload. Supports jpg/jpeg/png/gif/webp for images and mp4/webm/mov for videos.
+- **Playlist** — Build and reorder the screensaver playlist for the idle screen. Drag items to reorder. Set display duration for images. Changes auto-save on reorder; use "Save Playlist" to commit manually.
+
+**Persistence:**
+Printer config is stored in `app/config/printers.json`. Playlists are stored in `app/config/playlist_reg.json` and `app/config/playlist_max.json`. On first boot, existing `.env.N` files are automatically migrated to `printers.json`.
+
+**Required docker-compose volume mounts** (add to your compose file if not present):
+```yaml
+volumes:
+  - ./app/config:/app/config          # printer config + playlists
+  - ./app/static/videos:/app/static/videos   # uploaded videos
+  - ./app/static/images:/app/static/images   # uploaded images
+```

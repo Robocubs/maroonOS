@@ -12,7 +12,7 @@ services:
       - DEV_MODE=${DEV_MODE:-false}
       - MODE=${MODE:-reg}
     volumes:
-      - ./app/.env.1:/app/.env.1:ro
-      - ./app/.env.2:/app/.env.2:ro
-      - ./app/.env.3:/app/.env.3:ro
+      - ./app/config:/app/config
+      - ./app/static/videos:/app/static/videos
+      - ./app/static/images:/app/static/images
     restart: unless-stopped

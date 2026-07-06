@@ -1,18 +1,17 @@
 import base64
 from fastapi import APIRouter, HTTPException
-from config import DEV_MODE, SERVER_DIR, PrinterConfig, load_printers
+from config import DEV_MODE, SERVER_DIR, PrinterConfig, get_printers
 import devData
 import prusa
 
 router = APIRouter(prefix="/printer")
 
-_printers: dict[int, PrinterConfig] = load_printers()
-
 
 def _get_config(printer_id: int) -> PrinterConfig:
-    if printer_id not in _printers:
+    printers = get_printers()
+    if printer_id not in printers:
         raise HTTPException(status_code=404, detail=f"Printer {printer_id} not configured")
-    return _printers[printer_id]
+    return printers[printer_id]
 
 
 @router.get("/{printer_id}/status")

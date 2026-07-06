@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/colors.css">
+    <link rel="stylesheet" href="/static/fonts.css">
+    <link rel="stylesheet" href="/static/configDashboard.css">
+    <title>maroonOS — Config</title>
+</head>
+<body data-mode="{{ mode }}">
+
+<aside class="sidebar">
+    <div class="sidebar-logo">maroonOS</div>
+    <nav class="sidebar-nav">
+        <button class="nav-item active" data-section="printers">Printers</button>
+        <button class="nav-item" data-section="media">Media Library</button>
+        <button class="nav-item" data-section="playlist">Playlist</button>
+    </nav>
+</aside>
+
+<main class="main-area">
+
+    <!-- PRINTERS -->
+    <section id="section-printers" class="section">
+        <div class="section-header">
+            <h1 class="section-title">Printers</h1>
+        </div>
+        <div id="printer-cards" class="printer-cards"></div>
+    </section>
+
+    <!-- MEDIA LIBRARY -->
+    <section id="section-media" class="section hidden">
+        <div class="section-header">
+            <h1 class="section-title">Media Library</h1>
+            <div class="filter-pills">
+                <button class="pill active" data-filter="all">All</button>
+                <button class="pill" data-filter="image">Images</button>
+                <button class="pill" data-filter="video">Videos</button>
+            </div>
+        </div>
+        <div id="media-grid" class="media-grid"></div>
+        <div id="upload-zone" class="upload-zone">
+            <div class="upload-zone-inner">
+                <div class="upload-icon">&#8679;</div>
+                <div class="upload-label">Drag files here or <span class="upload-link">click to upload</span></div>
+                <div class="upload-hint">Images: jpg, jpeg, png, gif, webp &nbsp;|&nbsp; Videos: mp4, webm, mov</div>
+                <div id="upload-progress-wrap" class="upload-progress-wrap hidden">
+                    <div class="upload-progress-bar">
+                        <div id="upload-progress-fill" class="upload-progress-fill"></div>
+                    </div>
+                    <div id="upload-status" class="upload-status"></div>
+                </div>
+            </div>
+            <input type="file" id="file-input" class="hidden" accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mov" multiple>
+        </div>
+    </section>
+
+    <!-- PLAYLIST -->
+    <section id="section-playlist" class="section hidden">
+        <div class="section-header">
+            <h1 class="section-title">Playlist</h1>
+        </div>
+        <div id="playlist-panels" class="playlist-panels"></div>
+    </section>
+
+</main>
+
+<!-- Media picker modal -->
+<div id="media-picker-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-box">
+        <div class="modal-header">
+            <span class="modal-title">Add from Library</span>
+            <button class="modal-close" id="media-picker-close">&times;</button>
+        </div>
+        <div class="filter-pills modal-pills">
+            <button class="pill active" data-mpfilter="all">All</button>
+            <button class="pill" data-mpfilter="image">Images</button>
+            <button class="pill" data-mpfilter="video">Videos</button>
+        </div>
+        <div id="media-picker-grid" class="media-grid modal-grid"></div>
+    </div>
+</div>
+
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});</script>
+<script src="/static/configDashboard.js"></script>
+</body>
+</html>

@@ -10,11 +10,7 @@
 </head>
 <body>
 
-<div id="overlay">
-    <video autoplay muted loop preload="auto">
-        <source src="/static/videos/LandscapeAnniversary1080p.webm" type="video/webm">
-    </video>
-</div>
+<div id="overlay"></div>
 
 <div id="panels">
     {% macro panel() %}
@@ -30,6 +26,8 @@
     {{ panel() }}
 </div>
 
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});</script>
+<script src="/static/screensaverPlayer.js"></script>
 <script src="/static/dashboard.js"></script>
 <script src="/static/maxDashboard.js"></script>
 <script>initMax({{ printer_ids | tojson }});</script>
