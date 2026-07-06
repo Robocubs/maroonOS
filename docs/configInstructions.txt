@@ -103,15 +103,22 @@ Configure Auto Login to Sway
         System Options -> Boot / Auto Login -> Console Autologin
         (non-interactively: sudo raspi-config nonint do_boot_behaviour B2)
 
-    Edit the getty service to auto-login:
-        sudo systemctl edit getty@tty1
-
-    Add the following (replace robocubs with your username if different):
+    Write the getty auto-login override directly (replace robocubs with
+    your username if different). This is more reliable than the
+    interactive `sudo systemctl edit getty@tty1` — if a drop-in already
+    exists from an earlier setup attempt, systemctl edit can refuse to
+    save with a confusing "new contents are empty, not writing file"
+    error rather than just applying your changes:
+        sudo mkdir -p /etc/systemd/system/getty@tty1.service.d
+        sudo tee /etc/systemd/system/getty@tty1.service.d/override.conf > /dev/null <<'EOF'
         [Service]
         ExecStart=
         ExecStart=-/sbin/agetty --autologin robocubs --noclear %I $TERM
+        EOF
+        sudo systemctl daemon-reload
 
-    Save and exit.
+    Verify it wrote correctly:
+        cat /etc/systemd/system/getty@tty1.service.d/override.conf
 
     Add Sway to the shell profile so it launches on login:
         nano ~/.bash_profile
