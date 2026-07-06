@@ -12,8 +12,11 @@ Install Dependencies
 
         sudo apt update && sudo apt upgrade -y
 
-        # Sway (Wayland compositor) and supporting tools
-        sudo apt install -y sway swayidle
+        # Sway (Wayland compositor) and supporting tools. swaybg is required
+        # for the optional custom wallpaper (see "Configure Display (Sway)"
+        # below) — Sway itself doesn't draw backgrounds, it just launches
+        # this helper when a config has a "bg" line.
+        sudo apt install -y sway swayidle swaybg
 
         # Docker — Debian's default repos don't carry docker-compose-plugin,
         # so add Docker's official repo instead of a plain `apt install docker.io`
@@ -189,6 +192,26 @@ Configure Display (Sway)
             swaymsg output HDMI-A-1 transform 270
         Whichever one displays right-side up is correct — edit
         ~/.config/sway/config to set that value permanently.
+
+        Save and exit (CTRL + X, Y, Enter).
+
+    Custom Wallpaper (optional)
+        Requires the swaybg package installed above. This is only ever
+        visible briefly during boot, before Chromium's kiosk window covers
+        the entire screen — it's a nicer background than plain black while
+        waiting on the curl loop, not something you'll see during normal
+        operation.
+
+        Copy your image onto the Pi, e.g. via scp from your Mac:
+            scp wallpaper.png robocubs@3db.local:~/.config/sway/wallpaper.png
+        (or place it directly if you're already SSH'd in and have another
+        way to transfer it, such as downloading it with curl/wget)
+
+        Add a "bg" line to ~/.config/sway/config, using your actual output
+        name from above and one of the scaling modes: stretch, fill, fit,
+        center, or tile:
+            nano ~/.config/sway/config
+            output HDMI-A-1 bg /home/robocubs/.config/sway/wallpaper.png fill
 
         Save and exit (CTRL + X, Y, Enter).
 
