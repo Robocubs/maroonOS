@@ -14,19 +14,30 @@ function initMax(printerIds) {
     // or a still-idle panel) stutter and drift out of clock-anchored sync.
     // Only run a panel's own screensaver when that panel is actually
     // visible: overlay hidden (someone printing) and that panel idle.
+    //
+    // This runs on every poll tick from any of the 3 dashboards (each
+    // idle panel's own Dashboard._onIdle() also calls .start() on its own
+    // screensaver independently, every ~2s, regardless of overlay state).
+    // Diff against the player's current _active flag rather than calling
+    // start()/stop() unconditionally — otherwise a panel's own start()
+    // and this function's stop() interleave every poll and race, leaving
+    // playback perpetually cancelled mid-render instead of ever settling.
     function updateOverlay() {
         const anyPrinting = printing.some(Boolean);
         if (anyPrinting) {
             overlay.style.display = 'none';
-            if (overlayPlayer) overlayPlayer.stop();
-            dashboards.forEach((d, i) => {
-                if (!printing[i] && d.screensaverPlayer) d.screensaverPlayer.start();
-            });
+            if (overlayPlayer && overlayPlayer._active) overlayPlayer.stop();
         } else {
             overlay.style.display = '';
-            if (overlayPlayer) overlayPlayer.start();
-            dashboards.forEach(d => { if (d.screensaverPlayer) d.screensaverPlayer.stop(); });
+            if (overlayPlayer && !overlayPlayer._active) overlayPlayer.start();
         }
+        dashboards.forEach((d, i) => {
+            const sp = d.screensaverPlayer;
+            if (!sp) return;
+            const shouldPlay = anyPrinting && !printing[i];
+            if (shouldPlay && !sp._active) sp.start();
+            else if (!shouldPlay && sp._active) sp.stop();
+        });
     }
 
     function applyScale() {
