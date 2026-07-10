@@ -7,14 +7,25 @@ function initMax(printerIds) {
         ? new ScreensaverPlayerMax(overlay, '/config/api/playlist/max', 'landscape')
         : null;
 
+    // The overlay fully covers #panels when shown, so panel screensavers
+    // playing underneath it are invisible — leaving them running wastes a
+    // video decode per hidden panel (no hardware decode block on the Pi),
+    // which starves the CPU and makes the one visible screensaver (overlay
+    // or a still-idle panel) stutter and drift out of clock-anchored sync.
+    // Only run a panel's own screensaver when that panel is actually
+    // visible: overlay hidden (someone printing) and that panel idle.
     function updateOverlay() {
         const anyPrinting = printing.some(Boolean);
         if (anyPrinting) {
             overlay.style.display = 'none';
             if (overlayPlayer) overlayPlayer.stop();
+            dashboards.forEach((d, i) => {
+                if (!printing[i] && d.screensaverPlayer) d.screensaverPlayer.start();
+            });
         } else {
             overlay.style.display = '';
             if (overlayPlayer) overlayPlayer.start();
+            dashboards.forEach(d => { if (d.screensaverPlayer) d.screensaverPlayer.stop(); });
         }
     }
 
@@ -31,7 +42,7 @@ function initMax(printerIds) {
     applyScale();
     window.addEventListener('resize', applyScale);
 
-    panels.forEach((panel, i) => {
+    const dashboards = Array.from(panels).map((panel, i) =>
         new Dashboard(printerIds[i], panel, {
             onStateChange(isPrinting) {
                 printing[i] = isPrinting;
@@ -39,8 +50,8 @@ function initMax(printerIds) {
             },
             makeScreensaverPlayer: (el) =>
                 new ScreensaverPlayerMax(el, '/config/api/playlist/max', 'portrait'),
-        });
-    });
+        })
+    );
 
     updateOverlay();
 }
