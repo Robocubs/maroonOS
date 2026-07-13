@@ -437,9 +437,28 @@ class ScreensaverPlayer {
                 onAdvance();
             };
 
+            // prevEl is normally cleaned up once this video reaches canplay,
+            // but under heavy decode load canplay can be delayed long enough
+            // that the safety-net timer below advances to the NEXT item
+            // first — leaving prevEl attached and still decoding forever,
+            // with nothing left to ever trigger its removal. Guarantee
+            // cleanup regardless of whether canplay ever fires.
+            let prevRemoved = false;
+            const cleanupPrev = () => {
+                if (prevRemoved) return;
+                // onFail (below) can revert _currentEl back to prevEl if THIS
+                // video fails — don't rip out the element that's actively
+                // back on screen. It'll get cleaned up as its own prevEl the
+                // next time a new item renders.
+                if (this._currentEl === prevEl) return;
+                prevRemoved = true;
+                this._removeEl(prevEl);
+            };
+            setTimeout(cleanupPrev, 5000);
+
             video.addEventListener('canplay', () => {
                 this._failStreak = 0;
-                this._removeEl(prevEl);
+                cleanupPrev();
             }, { once: true });
 
             video.addEventListener('ended', () => {
