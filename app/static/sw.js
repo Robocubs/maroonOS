@@ -7,6 +7,16 @@ self.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });
 self.addEventListener('fetch', event => {
     if (!MEDIA_RE.test(new URL(event.request.url).pathname)) return;
 
+    // Range requests (video seeking/streaming) must go straight to the network.
+    // The cache only ever stores whole-resource responses, and cache.match()
+    // keys purely on URL — it can't slice a cached response to satisfy a Range
+    // header. Intercepting these anyway means every ranged request gets served
+    // the entire file as a 200 instead of the requested slice as a 206, which
+    // forces the browser's media pipeline to redo far more demuxing/buffering
+    // work than necessary. Only whole-file requests (this app's own
+    // _prefetchMedia() calls, and <img src> loads) should be cached.
+    if (event.request.headers.has('range')) return;
+
     // Use the URL string (not the Request object) as the cache key so that
     // mode/credentials differences between fetch() and <img src> loads never
     // cause a cache miss.
