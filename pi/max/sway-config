@@ -4,7 +4,9 @@
 # --- Display ---
 # Run `swaymsg -t get_outputs` to find your output name
 # No transform needed — max layout is landscape
-output HDMI-A-1 transform 0
+# Pinned to 1080p60 to match the screensaver video's native resolution —
+# avoids upscaling from a lower-res source and keeps decode cost down.
+output HDMI-A-1 resolution 1920x1080@60Hz transform 0
 
 # --- Appearance ---
 default_border none
