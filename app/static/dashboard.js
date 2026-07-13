@@ -84,24 +84,29 @@ class Dashboard {
         fetch(`/printer/${this.printerId}/status`)
             .then(r => r.json())
             .then(data => {
-                this.$('#hotendFan').textContent = data.printer.fan_hotend;
-                this.$('#speed').textContent = Math.ceil(data.printer.speed) + '%';
-                this.$('#printFan').textContent = data.printer.fan_print;
+                // Skip DOM/chart updates while hidden behind the screensaver — in max
+                // mode this is 3 panels x 4 Chart.js redraws every poll, continuously,
+                // even when nothing is visible. State detection still runs every tick.
+                if (this.isPrinting) {
+                    this.$('#hotendFan').textContent = data.printer.fan_hotend;
+                    this.$('#speed').textContent = Math.ceil(data.printer.speed) + '%';
+                    this.$('#printFan').textContent = data.printer.fan_print;
 
-                this.$('#nozzleTemp').textContent = Math.ceil(data.printer.temp_nozzle) + '°';
-                this.$('#darkNozzleTemp').textContent = Math.ceil(data.printer.temp_nozzle) + '°';
-                this.$('#bedTemp').textContent = Math.ceil(data.printer.temp_bed) + '°';
-                this.$('#darkBedTemp').textContent = Math.ceil(data.printer.temp_bed) + '°';
+                    this.$('#nozzleTemp').textContent = Math.ceil(data.printer.temp_nozzle) + '°';
+                    this.$('#darkNozzleTemp').textContent = Math.ceil(data.printer.temp_nozzle) + '°';
+                    this.$('#bedTemp').textContent = Math.ceil(data.printer.temp_bed) + '°';
+                    this.$('#darkBedTemp').textContent = Math.ceil(data.printer.temp_bed) + '°';
 
-                this.$('#nozzleTarget').textContent = '/ ' + Math.ceil(data.printer.target_nozzle) + '°';
-                this.$('#darkNozzleTarget').textContent = '/ ' + Math.ceil(data.printer.target_nozzle) + '°';
-                this.$('#bedTarget').textContent = '/ ' + Math.ceil(data.printer.target_bed) + '°';
-                this.$('#darkBedTarget').textContent = '/ ' + Math.ceil(data.printer.target_bed) + '°';
+                    this.$('#nozzleTarget').textContent = '/ ' + Math.ceil(data.printer.target_nozzle) + '°';
+                    this.$('#darkNozzleTarget').textContent = '/ ' + Math.ceil(data.printer.target_nozzle) + '°';
+                    this.$('#bedTarget').textContent = '/ ' + Math.ceil(data.printer.target_bed) + '°';
+                    this.$('#darkBedTarget').textContent = '/ ' + Math.ceil(data.printer.target_bed) + '°';
 
-                this._checkNozzleHeating(data.printer.temp_nozzle, data.printer.target_nozzle);
-                this._checkBedHeating(data.printer.temp_bed, data.printer.target_bed);
-                this._updateNozzleGraph(data.printer.temp_nozzle);
-                this._updateBedGraph(data.printer.temp_bed);
+                    this._checkNozzleHeating(data.printer.temp_nozzle, data.printer.target_nozzle);
+                    this._checkBedHeating(data.printer.temp_bed, data.printer.target_bed);
+                    this._updateNozzleGraph(data.printer.temp_nozzle);
+                    this._updateBedGraph(data.printer.temp_bed);
+                }
                 callback(data.printer.state);
             })
             .catch(() => callback('IDLE'));
@@ -235,6 +240,8 @@ class Dashboard {
         if (this.sleep) this.sleep.style.display = '';
         if (this.screensaverPlayer) this.screensaverPlayer.start();
         if (this.screensaverPlayer) this.screensaverPlayer.checkForUpdate();
+        this._bedStopHeating();
+        this._nozzleStopHeating();
         if (this.onStateChange) this.onStateChange(false);
     }
 
