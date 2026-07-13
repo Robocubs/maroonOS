@@ -391,9 +391,22 @@ class ScreensaverPlayer {
                 }
             }, Math.max(0, budgetMs));
 
+            // Same guarantee as the video branch below: don't rely solely on
+            // 'load' ever firing to clean up prevEl — if it's delayed past
+            // the advance timer above, prevEl would otherwise stay attached
+            // forever with nothing left to remove it.
+            let prevRemovedImg = false;
+            const cleanupPrevImg = () => {
+                if (prevRemovedImg) return;
+                if (this._currentEl === prevEl) return;
+                prevRemovedImg = true;
+                this._removeEl(prevEl);
+            };
+            setTimeout(cleanupPrevImg, 5000);
+
             img.addEventListener('load', () => {
                 this._failStreak = 0;
-                this._removeEl(prevEl);
+                cleanupPrevImg();
             }, { once: true });
 
             img.addEventListener('error', () => {
