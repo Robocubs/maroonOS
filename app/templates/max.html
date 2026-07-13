@@ -31,5 +31,16 @@
 <script src="/static/dashboard.js"></script>
 <script src="/static/maxDashboard.js"></script>
 <script>initMax({{ printer_ids | tojson }});</script>
+<script>
+// TEMPORARY DEBUG — remove once the CPU-ramp investigation is done.
+setInterval(() => {
+    const v = document.querySelectorAll('video').length;
+    const i = document.querySelectorAll('img').length;
+    const mem = performance.memory
+        ? Math.round(performance.memory.usedJSHeapSize / 1048576)
+        : 'na';
+    fetch(`/__DEBUG__/video${v}_img${i}_heapMB${mem}_t${Date.now()}`).catch(() => {});
+}, 5000);
+</script>
 </body>
 </html>
