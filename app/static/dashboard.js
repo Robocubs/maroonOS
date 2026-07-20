@@ -116,24 +116,39 @@ class Dashboard {
         fetch(`/printer/${this.printerId}/job`)
             .then(r => r.json())
             .then(data => {
-                const fileName = data.file.display_name.split('_');
-                const hasNozzle = fileName[1].endsWith('n');
-                this._checkLength(this._checkIS(fileName)[0]);
-                if (hasNozzle) {
-                    this.$('#nozzleDiameter').textContent = fileName[1].replace('n', '');
-                    this.$('#layerHeight').textContent = fileName[2].replace('mm', '');
-                    this.$('#filamentType').textContent = fileName[3];
-                    this.$('#timeString').innerHTML = this._calcTime(fileName[5].split('.')[0]);
-                } else {
-                    this.$('#nozzleDiameter').textContent = this.nozzleSize;
-                    this.$('#layerHeight').textContent = fileName[1].replace('mm', '');
-                    this.$('#filamentType').textContent = fileName[2];
-                    this.$('#timeString').innerHTML = this._calcTime(fileName[4].split('.')[0]);
-                }
+                const parsed = this._parseFileName(data.file.display_name);
+                this._checkLength(parsed.title);
+                this.$('#ISLabel').textContent = parsed.printer === 'MK3S' ? '---' : 'On';
+                this.$('#nozzleDiameter').textContent = parsed.nozzle !== null ? parsed.nozzle : this.nozzleSize;
+                this.$('#layerHeight').textContent = parsed.layerHeight;
+                this.$('#filamentType').textContent = parsed.filament;
+                this.$('#timeString').innerHTML = this._calcTime(parsed.time);
                 this.$('#layerUnit').textContent = 'mm';
                 this.$('#nozzleUnit').textContent = 'mm';
             })
             .catch(() => {});
+    }
+
+    // Trailing fields (nozzle?, layerHeight, filament, printer, time) have a
+    // fixed count from the end of the filename; only the leading name portion
+    // has variable length (it may itself contain underscores).
+    _parseFileName(displayName) {
+        const parts = displayName.split('_');
+        const time = parts[parts.length - 1].split('.')[0];
+        const printer = parts[parts.length - 2];
+        const filament = parts[parts.length - 3];
+        const layerHeightIdx = parts.length - 4;
+        const nozzleIdx = parts.length - 5;
+        const hasNozzle = nozzleIdx >= 0 && parts[nozzleIdx].endsWith('n');
+        const titleEnd = hasNozzle ? nozzleIdx : layerHeightIdx;
+        return {
+            title: parts.slice(0, titleEnd).join('_'),
+            nozzle: hasNozzle ? parts[nozzleIdx].replace('n', '') : null,
+            layerHeight: parts[layerHeightIdx].replace('mm', ''),
+            filament,
+            printer,
+            time,
+        };
     }
 
     getJobDynamic() {
@@ -262,13 +277,6 @@ class Dashboard {
             this.$('#jobTitle').textContent = title;
             this.$('#jobTitle').style.display = '';
         }
-    }
-
-    _checkIS(fileName) {
-        const hasNozzle = fileName[1].endsWith('n');
-        const printer = hasNozzle ? fileName[4] : fileName[3];
-        this.$('#ISLabel').textContent = printer === 'MK3S' ? '---' : 'On';
-        return fileName;
     }
 
     _calcTime(time) {
