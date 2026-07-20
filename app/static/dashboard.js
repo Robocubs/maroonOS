@@ -188,18 +188,9 @@ class Dashboard {
             .then(r => r.json())
             .then(data => {
                 const view = this.$('#thumbnail');
-                const image = `data:image/png;base64,${data.image}`;
-                const size = new Image();
-                size.src = image;
-                size.onload = () => {
-                    if (size.width > 999 || size.height > 999) {
-                        view.src = image;
-                    } else {
-                        view.style.width = '90%';
-                        view.style.height = '90%';
-                        view.src = '/static/icons/RobocubsLogo.png';
-                    }
-                };
+                view.style.width = '';
+                view.style.height = '';
+                view.src = `data:image/png;base64,${data.image}`;
             })
             .catch(() => {
                 const view = this.$('#thumbnail');
