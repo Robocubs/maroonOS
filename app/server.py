@@ -23,6 +23,15 @@ app.mount("/static", StaticFiles(directory=APP_DIR / "static"), name="static")
 
 templates = Jinja2Templates(directory=APP_DIR / "templates")
 
+
+@app.middleware("http")
+async def no_cache_app_shell(request: Request, call_next):
+    response = await call_next(request)
+    path = request.url.path
+    if path == "/" or path.endswith((".js", ".css", ".html")):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
 app.include_router(printer.router)
 app.include_router(config_router.router)
 
